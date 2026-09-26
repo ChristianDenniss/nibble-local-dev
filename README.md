@@ -24,7 +24,7 @@ doordash/
   local-dev/   ← you are here
 ```
 
-`api-engine` and `data-acquisition` use local `replace` directives in `go.mod`, so paths must match this layout.
+`api-engine` and `data-acquisition` import versioned Go modules (`go-data-model`, `platform-contracts` at semver tags like **v0.1.0**). For local compiles against sibling checkouts, use the **`go.work`** file in this repo (see [Go module versions](#go-module-versions)).
 
 ## Onboarding (new developers)
 
@@ -79,7 +79,7 @@ If `local-dev`’s `origin` is on GitHub, the script can infer the owner from th
 ### 3. Build and run
 
 ```bash
-make bootstrap   # pull images and build containers
+make build       # pull images and build containers
 make up          # start postgres, api-engine, data-acquisition, web-platform
 make status      # check containers
 ```
@@ -92,6 +92,28 @@ Other useful targets:
 | ----------- | ------------------------ |
 | `make down` | Stop and remove containers |
 | `make logs` | Follow combined logs     |
+
+## Versioning
+
+Each repository uses **semantic-release** (same model as
+[troj-model-dashboard](https://github.com/TrojAISec/troj-model-dashboard)): squash-merge
+PRs with `feat:` / `fix:` titles, get `vX.Y.Z` **GitHub Releases** on `main`. See
+[`docs/architecture/versioning.md`](docs/architecture/versioning.md).
+
+## Go modules (compile-time deps)
+
+`go-data-model` and `platform-contracts` are versioned Go modules; their git release
+tags (`v1.0.0`, …) are what `go get` uses. Services pin those versions in `go.mod` (no
+committed `replace`).
+
+**Local compile** — use the workspace file in this repo:
+
+```bash
+export GOWORK="$(pwd)/go.work"          # bash, from this directory
+$env:GOWORK = "$PWD\go.work"            # PowerShell
+```
+
+**Docker Compose** builds generate a `go.work` inside the image from sibling folders.
 
 ## Ports
 

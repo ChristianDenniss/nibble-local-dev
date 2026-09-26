@@ -1,6 +1,6 @@
 COMPOSE := docker compose
 
-.PHONY: clone bootstrap up down logs status
+.PHONY: clone build up down logs status
 
 ifeq ($(OS),Windows_NT)
 clone:
@@ -10,7 +10,7 @@ clone:
 	bash clone.sh
 endif
 
-bootstrap:
+build:
 	$(COMPOSE) pull
 	$(COMPOSE) build
 
