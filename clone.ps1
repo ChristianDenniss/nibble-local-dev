@@ -5,13 +5,13 @@ $LocalDevRoot = $PSScriptRoot
 $WorkspaceRoot = Split-Path -Parent $LocalDevRoot
 
 $Repos = @(
-    "go-data-model",
-    "go-data-store",
-    "platform-contracts",
-    "api-engine",
-    "data-acquisition",
-    "web-platform",
-    "local-dev"
+    "nibble-go-data-model",
+    "nibble-go-data-store",
+    "nibble-platform-contracts",
+    "nibble-api-engine",
+    "nibble-data-acquisition",
+    "nibble-web-platform",
+    "nibble-local-dev"
 )
 
 function Get-GitHubOwner {

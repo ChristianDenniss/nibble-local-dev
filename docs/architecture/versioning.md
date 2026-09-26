@@ -1,6 +1,6 @@
 # Versioning
 
-Each doordash repository versions itself **automatically**. You do not edit version
+Each Nibble repository versions itself **automatically**. You do not edit version
 numbers by hand — the version comes from commit messages on `main`, using the same
 [semantic-release](https://semantic-release.gitbook.io/) setup as
 [troj-model-dashboard](https://github.com/TrojAISec/troj-model-dashboard).
@@ -67,10 +67,10 @@ Release tooling is installed ephemerally in CI (not in app `package-lock.json`).
 
 ## 4. Go modules between repos
 
-Library repos (`go-data-model`, `go-data-store`, `platform-contracts`) publish **Go module versions**
+Library repos (`nibble-go-data-model`, `nibble-go-data-store`, `nibble-platform-contracts`) publish **Go module versions**
 that match their git tags (`v1.2.3` → `go get …@v1.2.3`).
 
-Services (`api-engine`, `data-acquisition`) pin those modules in **`go.mod`** / **`go.sum`**
+Services (`nibble-api-engine`, `nibble-data-acquisition`) pin those modules in **`go.mod`** / **`go.sum`**
 at released GitHub tags. **Docker and CI** build each service repo alone and run
 `go mod download` — they do not compile against sibling folders on disk.
 
@@ -79,13 +79,13 @@ repos). It is not used in Dockerfiles or Release verify jobs.
 
 Release order when changing a shared type:
 
-1. Merge and release `go-data-model` (`feat:` → new tag).
-2. If persistence changed, bump and release `go-data-store` against that model tag.
+1. Merge and release `nibble-go-data-model` (`feat:` → new tag).
+2. If persistence changed, bump and release `nibble-go-data-store` against that model tag.
 3. Bump the service: `go get github.com/ChristianDenniss/go-data-model@vX.Y.Z`
-   (and `go-data-store` / `platform-contracts` as needed) with `GOWORK=off`, then merge
+   (and `nibble-go-data-store` / `nibble-platform-contracts` as needed) with `GOWORK=off`, then merge
    the service PR.
 
-`go-data-model` **v1.1.0** is the first split-package release (`restaurant/entity`, …).
+`nibble-go-data-model` **v1.1.0** is the first split-package release (`restaurant/entity`, …).
 Do not pin services at **v1.0.0** — that tag is the pre-split scaffold.
 
 ---
@@ -116,7 +116,7 @@ Maintenance branch names match troj: `1.2.x`, `1.x` (see `.releaserc.json`).
 
 ## 7. Auth for private Go modules
 
-`go-data-model`, `go-data-store`, and `platform-contracts` are private. **`go mod download`**
+`nibble-go-data-model`, `nibble-go-data-store`, and `nibble-platform-contracts` are private. **`go mod download`**
 must run as an authenticated GitHub user. Set the same host-side env when running `go`
 outside Docker:
 
@@ -131,7 +131,7 @@ reads `gh auth token` and passes it to Docker for that build only — no PAT fil
 **GitHub Actions:** editing or pushing `.github/workflows/*.yml` does **not** require a
 repo secret. Workflows use the built-in **`GITHUB_TOKEN`** for semantic-release on that
 repo. You only need extra auth if a **verify** job must download Go modules or check out
-**other private** repos (e.g. `api-engine` pulling `go-data-model`). Then add optional
+**other private** repos (e.g. `nibble-api-engine` pulling `nibble-go-data-model`). Then add optional
 secret **`GH_PAT`** on that service repo, or make those library repos public so verify
 can run with no PAT. Pushing workflow changes from your machine may need `gh auth refresh
 -s workflow` — that is OAuth scope on your login, not `GH_PAT` in GitHub Settings.

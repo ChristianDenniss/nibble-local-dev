@@ -1,6 +1,6 @@
-# local-dev
+# nibble-local-dev
 
-Orchestrates the sibling repos as one local stack: clone them, build images, start Postgres and the services, and stream logs.
+Orchestrates the sibling Nibble repos as one local stack: clone them, build images, start Postgres and the services, and stream logs.
 
 **Why this repo exists:** nobody should have to remember five Dockerfiles and a database URL. Local development is a product of its own. This repo is that product — not a service, and not the domain.
 
@@ -20,27 +20,27 @@ Go and Node are not required on the host; services build inside Docker.
 All services live as **sibling folders** under one workspace directory:
 
 ```text
-doordash/
-  go-data-model/
-  go-data-store/
-  platform-contracts/
-  api-engine/
-  data-acquisition/
-  web-platform/
-  local-dev/   ← you are here
+nibble/
+  nibble-go-data-model/
+  nibble-go-data-store/
+  nibble-platform-contracts/
+  nibble-api-engine/
+  nibble-data-acquisition/
+  nibble-web-platform/
+  nibble-local-dev/   ← you are here
 ```
 
-`api-engine` depends on **`go-data-model`**, **`go-data-store`**, and **`platform-contracts`** as **versioned Go modules from GitHub** (current pins start at `go-data-model@v1.1.0`). Optional **`go.work`** here is only for editing multiple repos at once on your machine (see [Go modules](#go-modules-compile-time-deps)).
+`nibble-api-engine` depends on **`nibble-go-data-model`**, **`nibble-go-data-store`**, and **`nibble-platform-contracts`** as **versioned Go modules from GitHub**. Optional **`go.work`** here is only for editing multiple repos at once on your machine (see [Go modules](#go-modules-compile-time-deps)).
 
 ## Onboarding (new developers)
 
 ### 1. Get this repo
 
-Clone only `local-dev` first:
+Clone only `nibble-local-dev` first:
 
 ```bash
-git clone https://github.com/ChristianDenniss/local-dev.git
-cd local-dev
+git clone https://github.com/ChristianDenniss/nibble-local-dev.git
+cd nibble-local-dev
 ```
 
 On Windows (PowerShell), same URL works; use whichever shell you prefer for the steps below.
@@ -80,7 +80,7 @@ export GITHUB_OWNER=your-github-username   # bash
 $env:GITHUB_OWNER = "your-github-username" # PowerShell
 ```
 
-If `local-dev`’s `origin` is on GitHub, the script can infer the owner from that remote.
+If `nibble-local-dev`’s `origin` is on GitHub, the script can infer the owner from that remote.
 
 ### 3. Authenticate with GitHub
 
@@ -110,7 +110,7 @@ make status      # check containers
 .\start.ps1 -Build
 ```
 
-`make start` / `.\start.ps1` stay attached so you see postgres init (first run creates `doordash`), api-engine migrations, and every service log. Ctrl+C stops the stack.
+`make start` / `.\start.ps1` stay attached so you see postgres init (first run creates `nibble`), api-engine migrations, and every service log. Ctrl+C stops the stack.
 
 Open [http://localhost:5173](http://localhost:5173). The page should show **200 success** after it calls `api-engine` `/health`.
 
@@ -132,7 +132,7 @@ PRs with `feat:` / `fix:` titles, get `vX.Y.Z` **GitHub Releases** on `main`. Se
 
 ## Go modules (compile-time deps)
 
-`go-data-model`, `go-data-store`, and `platform-contracts` are versioned Go modules; their git release
+`nibble-go-data-model`, `nibble-go-data-store`, and `nibble-platform-contracts` are versioned Go modules; their git release
 tags (`v1.1.0`, …) are what `go get` uses. Services pin those versions in `go.mod` (no
 committed `replace`). Host-side Go commands against private modules need:
 
@@ -142,7 +142,7 @@ export GONOSUMDB=github.com/ChristianDenniss/*
 ```
 
 In Docker, leave `VITE_API_URL` unset. Compose uses `API_ENGINE_URL` so the Vite
-dev server proxies `/health` to `api-engine`. `web-platform` waits until
+dev server proxies `/health` to `api-engine`. `nibble-web-platform` waits until
 `api-engine` reports healthy on `:8080`.
 
 **CI and Docker** — build only this service’s repo and fetch deps with `go mod download`
@@ -157,7 +157,7 @@ $env:GOWORK = "$PWD\go.work"            # PowerShell
 ```
 
 Do not commit `replace` directives in service repos; bump deps with
-`go get github.com/ChristianDenniss/go-data-model@v1.1.0` after a library release.
+`go get github.com/ChristianDenniss/go-data-model@vX.Y.Z` after a library release.
 
 ## Ports
 
@@ -170,12 +170,12 @@ Do not commit `replace` directives in service repos; bump deps with
 
 ## Repositories
 
-| Folder               | GitHub |
-| -------------------- | ------ |
-| go-data-model        | https://github.com/ChristianDenniss/go-data-model |
-| go-data-store        | https://github.com/ChristianDenniss/go-data-store |
-| platform-contracts   | https://github.com/ChristianDenniss/platform-contracts |
-| api-engine           | https://github.com/ChristianDenniss/api-engine |
-| data-acquisition     | https://github.com/ChristianDenniss/data-acquisition |
-| web-platform         | https://github.com/ChristianDenniss/web-platform |
-| local-dev    | https://github.com/ChristianDenniss/local-dev |
+| Folder                    | GitHub |
+| ------------------------- | ------ |
+| nibble-go-data-model      | https://github.com/ChristianDenniss/nibble-go-data-model |
+| nibble-go-data-store      | https://github.com/ChristianDenniss/nibble-go-data-store |
+| nibble-platform-contracts | https://github.com/ChristianDenniss/nibble-platform-contracts |
+| nibble-api-engine         | https://github.com/ChristianDenniss/nibble-api-engine |
+| nibble-data-acquisition   | https://github.com/ChristianDenniss/nibble-data-acquisition |
+| nibble-web-platform       | https://github.com/ChristianDenniss/nibble-web-platform |
+| nibble-local-dev          | https://github.com/ChristianDenniss/nibble-local-dev |

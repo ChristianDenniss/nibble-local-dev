@@ -6,7 +6,7 @@ $ErrorActionPreference = "Stop"
 
 Write-Host ""
 Write-Host "=== local-dev stack ==="
-Write-Host "Starting postgres, api-engine, data-acquisition, web-platform in the foreground."
+Write-Host "Starting postgres, api-engine, data-acquisition, and the Nibble web platform in the foreground."
 Write-Host "You will see image/container progress, database init, migrations, and service logs."
 Write-Host "Ctrl+C stops the stack."
 Write-Host ""
@@ -14,7 +14,7 @@ Write-Host ""
 $env:BUILDKIT_PROGRESS = "plain"
 
 function Test-StackImages {
-    foreach ($name in @('doordash-api-engine', 'doordash-data-acquisition', 'doordash-web-platform')) {
+    foreach ($name in @('nibble-api-engine', 'nibble-data-acquisition', 'nibble-web-platform')) {
         docker image inspect $name *> $null
         if ($LASTEXITCODE -ne 0) { return $false }
     }

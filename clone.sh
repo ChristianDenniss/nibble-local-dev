@@ -5,13 +5,13 @@ LOCAL_DEV_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 WORKSPACE_ROOT="$(cd "${LOCAL_DEV_ROOT}/.." && pwd)"
 
 repos=(
-  go-data-model
-  go-data-store
-  platform-contracts
-  api-engine
-  data-acquisition
-  web-platform
-  local-dev
+  nibble-go-data-model
+  nibble-go-data-store
+  nibble-platform-contracts
+  nibble-api-engine
+  nibble-data-acquisition
+  nibble-web-platform
+  nibble-local-dev
 )
 
 github_owner="${GITHUB_OWNER:-}"

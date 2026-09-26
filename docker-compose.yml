@@ -1,12 +1,12 @@
-name: doordash
+﻿name: nibble
 
 services:
   postgres:
     image: postgres:16-alpine
     environment:
-      POSTGRES_USER: doordash
-      POSTGRES_PASSWORD: doordash
-      POSTGRES_DB: doordash
+      POSTGRES_USER: nibble
+      POSTGRES_PASSWORD: nibble
+      POSTGRES_DB: nibble
     command:
       - postgres
       - -c
@@ -28,7 +28,7 @@ services:
     ports:
       - "5432:5432"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U doordash -d doordash"]
+      test: ["CMD-SHELL", "pg_isready -U nibble -d nibble"]
       interval: 2s
       timeout: 5s
       retries: 20
@@ -37,12 +37,12 @@ services:
 
   api-engine:
     build:
-      context: ../api-engine
+      context: ../nibble-api-engine
       dockerfile: Dockerfile
       args:
         GITHUB_TOKEN: ${GITHUB_TOKEN}
     environment:
-      DATABASE_URL: postgres://doordash:doordash@postgres:5432/doordash?sslmode=disable
+      DATABASE_URL: postgres://nibble:nibble@postgres:5432/nibble?sslmode=disable
       HTTP_ADDR: :8080
       GRPC_ADDR: :9090
     ports:
@@ -60,7 +60,7 @@ services:
 
   data-acquisition:
     build:
-      context: ../data-acquisition
+      context: ../nibble-data-acquisition
       dockerfile: Dockerfile
       args:
         GITHUB_TOKEN: ${GITHUB_TOKEN}
@@ -72,7 +72,7 @@ services:
 
   web-platform:
     build:
-      context: ../web-platform
+      context: ../nibble-web-platform
       dockerfile: Dockerfile
     environment:
       API_ENGINE_URL: http://api-engine:8080
