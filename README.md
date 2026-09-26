@@ -114,6 +114,16 @@ make status      # check containers
 
 Open [http://localhost:5173](http://localhost:5173). The page should show **200 success** after it calls `api-engine` `/health`.
 
+### Compare vertical slice (demo)
+
+With the stack running, `data-acquisition` uses `ACQUISITION_ADAPTER=demo` (compose default) to load the demo catalog via **ingest v2** (same data as `scripts/seed_compare_demo.sql`).
+
+1. **Web UI:** [http://localhost:5173/compare](http://localhost:5173/compare) — run compare for `pl_demo` / `dish_burger`.
+2. **Smoke script:** `.\scripts\smoke_compare.ps1` or `bash scripts/smoke_compare.sh` (hits `POST /v1/compare`).
+3. **Manual SQL seed** (optional): `psql postgres://nibble:nibble@localhost:5432/nibble?sslmode=disable -f scripts/seed_compare_demo.sql`
+
+Module pins after releases: [`docs/architecture/module-pins.md`](docs/architecture/module-pins.md).
+
 Other useful targets:
 
 | Target           | Description                                      |

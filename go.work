@@ -1,4 +1,4 @@
-﻿go 1.23
+go 1.23
 
 use (
 	../nibble-api-engine
@@ -7,4 +7,3 @@ use (
 	../nibble-go-data-store
 	../nibble-platform-contracts
 )
-

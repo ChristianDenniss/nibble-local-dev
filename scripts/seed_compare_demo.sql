@@ -57,7 +57,7 @@ INSERT INTO quote_observations (
   membership_tier, quote_kind, basket_subtotal_cents, observed_at
 ) VALUES (
   'qo_skip', 'ss_skip', 'ch_skip', 'delivery', 'third_party', 'dpz83',
-  '', 'indicative', 1350, now()
+  '', 'indicative', 1000, now()
 ) ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO quote_fee_lines (id, quote_obs_id, kind, amount_cents, currency) VALUES

@@ -972,7 +972,7 @@ Validate in the compare service (GDM), not with Postgres check constraints on JS
 - [x] Visual entity diagram ([data-model-diagram.md](./data-model-diagram.md))
 - [ ] Close D15–D26 (quote grain, paths, recommendations, phone confidence, filters)
 - [ ] Repository signatures per context
-- [ ] Promote compare JSON to `nibble-platform-contracts` or OpenAPI when HTTP work starts
+- [x] Promote compare JSON to `nibble-platform-contracts` OpenAPI (`openapi/compare/v1/openapi.yaml`)
 
 ### Phase 1 — Channels + source catalog + ingest
 
