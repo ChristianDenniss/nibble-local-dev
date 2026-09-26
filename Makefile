@@ -1,6 +1,14 @@
 COMPOSE := docker compose
 
-.PHONY: bootstrap up down logs status
+.PHONY: clone bootstrap up down logs status
+
+ifeq ($(OS),Windows_NT)
+clone:
+	powershell -NoProfile -ExecutionPolicy Bypass -File clone.ps1
+else
+clone:
+	bash clone.sh
+endif
 
 bootstrap:
 	$(COMPOSE) pull
