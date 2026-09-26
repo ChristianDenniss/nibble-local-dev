@@ -5,6 +5,7 @@ Docker Compose and Make targets for running the doordash stack on your machine.
 ## Prerequisites
 
 - [Git](https://git-scm.com/)
+- [GitHub CLI](https://cli.github.com/) (`gh auth login` — used for private Go module download during `make build`)
 - [Docker Desktop](https://www.docker.com/products/docker-desktop/) (or Docker Engine + Compose)
 - [Make](https://www.gnu.org/software/make/) (optional but recommended)
 
@@ -76,10 +77,17 @@ $env:GITHUB_OWNER = "your-github-username" # PowerShell
 
 If `local-dev`’s `origin` is on GitHub, the script can infer the owner from that remote.
 
-### 3. Build and run
+### 3. Authenticate with GitHub
 
-Copy `.env.example` to `.env` and set **`GITHUB_TOKEN`** (PAT with `repo` scope) so Docker
-can `go mod download` private modules when building `api-engine` and `data-acquisition`.
+Private module downloads use **your** GitHub session (nothing stored in this repo):
+
+```bash
+gh auth login
+```
+
+### 4. Build and run
+
+`make build` passes a token from `gh auth token` into Docker for `go mod download`.
 
 ```bash
 make build       # pull images and build containers

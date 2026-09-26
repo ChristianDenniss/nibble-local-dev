@@ -109,15 +109,18 @@ Maintenance branch names match troj: `1.2.x`, `1.x` (see `.releaserc.json`).
 
 ---
 
-## 7. CI and local Docker auth for private modules
+## 7. Auth for private Go modules
 
-`go-data-model` and `platform-contracts` are private GitHub repos. **`go mod download`**
-needs a classic PAT (repo scope):
+`go-data-model` and `platform-contracts` are private. **`go mod download`** must run as
+an authenticated GitHub user.
 
-- **GitHub Actions:** secret **`GH_PAT`** on `api-engine`, `data-acquisition`, and
-  `local-dev` (Release verify / compose config).
-- **Local Docker:** **`GITHUB_TOKEN`** in `local-dev/.env` (see `.env.example`) for
-  `docker compose build`.
+**Local (`make build`):** run **`gh auth login`** once. `with-github-auth` reads
+`gh auth token` and passes it to Docker for that build only — no PAT file in the repo.
+
+**GitHub Actions:** the default `GITHUB_TOKEN` cannot read other private repos. Whoever
+owns the org/account adds a classic PAT as repo secret **`GH_PAT`** on
+`api-engine`, `data-acquisition`, and `local-dev` if they want Release verify to pass
+(optional one-time setup in GitHub Settings, not in source control).
 
 ---
 

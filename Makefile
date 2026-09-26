@@ -12,7 +12,11 @@ endif
 
 build:
 	$(COMPOSE) pull
-	$(COMPOSE) build
+ifeq ($(OS),Windows_NT)
+	powershell -NoProfile -ExecutionPolicy Bypass -File with-github-auth.ps1 build
+else
+	bash with-github-auth.sh $(COMPOSE) build
+endif
 
 up:
 	$(COMPOSE) up -d
