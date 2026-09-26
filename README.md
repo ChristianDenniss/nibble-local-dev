@@ -127,7 +127,7 @@ Open [http://localhost:5174](http://localhost:5174). The page should show **200 
 
 ### Compare vertical slice (demo)
 
-With the stack running, `data-acquisition` uses `ACQUISITION_ADAPTER=demo` (compose default) to load the demo catalog via **ingest v2** (same data as `scripts/seed_compare_demo.sql`).
+With the stack running, `data-acquisition` uses `ACQUISITION_ADAPTER=curated` (compose default) to load **Fredericton markets + compare catalog** via **ingest v2** (equivalent to `scripts/seed/*.sql` + `seed_compare_demo.sql`). Use `demo` for catalog-only without markets.
 
 **Persistent market seed (Fredericton / UNBF):** after migrations, either run the `curated` adapter or apply SQL:
 
@@ -142,7 +142,7 @@ Or set `ACQUISITION_ADAPTER=curated` on `data-acquisition` (after sibling module
 2. **Smoke script:** `.\scripts\smoke_compare.ps1` or `bash scripts/smoke_compare.sh` (hits `POST /v1/compare`).
 3. **Manual SQL seed** (optional): `psql postgres://nibble:nibble@localhost:5433/nibble?sslmode=disable -f scripts/seed_compare_demo.sql`
 4. **Storefront browse** (optional, for `VITE_MOCK=0`): `psql ... -f scripts/seed_storefront_demo.sql` then open [http://localhost:5174](http://localhost:5174) — loads `GET /storefront` for account `acct_dev`.
-5. **Source menu browse** (Phase 1): after compare seed, open [http://localhost:5174/source-menu](http://localhost:5174/source-menu) or `curl "http://localhost:8081/v1/source-stores/ss_store/menu?fulfillment_mode=pickup"`.
+5. **Source catalog E2E** (Phase 1): `.\scripts\smoke_catalog_e2e.ps1` (lists `ch_store` stores, then menu). Web: [http://localhost:5174/source-menu](http://localhost:5174/source-menu).
 
 Module pins after releases: [`docs/architecture/module-pins.md`](docs/architecture/module-pins.md).
 

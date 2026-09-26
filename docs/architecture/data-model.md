@@ -42,7 +42,7 @@ This problem is old. Metasearch already paid for the scars. We are **not** claim
 |--------|----------------|
 | Google Shopping / Schema.org | **Product** (what it is) vs **Offer** (who sells it, price, availability). |
 | Uber Eats INCA | **Product** vs **item/offering** (seller + fulfillment + price). Combos/variants as first-class catalog, not extra columns on a sandwich. |
-| MealMe, DoorDash, Uber Eats menu APIs | Menu is **categories → items → modifier groups → nested options**. Delivery vs pickup menus. The **fee stack** (delivery, service, small-order, tax, order minimum, ETA) is what “all-in” means. |
+| DoorDash, Uber Eats, Skip menu APIs | Menu is **categories → items → modifier groups → nested options**. Delivery vs pickup menus. The **fee stack** (delivery, service, small-order, tax, order minimum, ETA) is what “all-in” means. |
 
 **What we added (Nibble, not a copy):**
 
@@ -53,7 +53,7 @@ This problem is old. Metasearch already paid for the scars. We are **not** claim
 - **Meta-search user spine** (dropoffs, alerts, outbound hops) instead of marketplace orders/payments unless we become merchant of record.
 - **Modifier matching deferred.** Persist source modifiers; do not canonicalize “add bacon” across apps in v1.
 
-If a future reader has to choose: credit Kayak/Skyscanner for the spine, Google/Uber/MealMe for catalog and fees, and Nibble for the plane split and the matching/honesty rules. We stood on that work so we could ship a model that answers all-in compare without spending the timeline rediscovering metasearch.
+If a future reader has to choose: credit Kayak/Skyscanner for the spine, Google/Uber/DoorDash for catalog and fees, and Nibble for the plane split and the matching/honesty rules. We stood on that work so we could ship a model that answers all-in compare without spending the timeline rediscovering metasearch.
 
 ---
 
@@ -149,7 +149,7 @@ Deals attach to a **path**, not generically to “the restaurant”:
 
 - Aggregator: free delivery on Skip, % off in app.
 - Merchant: “pickup 10%”, “Tuesday large pizza”, loyalty in brand app.
-- In-store: may only exist as `in_person` menu observation or promo scrape — same `promotions` tables with `fulfillment_mode` + `channel_id` + optional `place_id`.
+- In-store: may only exist as `in_person` menu observation or a posted promo — same `promotions` tables with `fulfillment_mode` + `channel_id` + optional `place_id`.
 
 We still do not model **secret** targeted coupons without a user-connected session.
 
@@ -199,9 +199,9 @@ Not implemented yet. Shapes below are the **target contract** for HTTP compare +
   "fulfillment_context": {
     "mode": "delivery",
     "dropoff": {
-      "latitude": 49.2827,
-      "longitude": -123.1207,
-      "label": "Home"
+      "latitude": 45.9458,
+      "longitude": -66.6414,
+      "label": "UNBF"
     }
   },
   "basket": {
@@ -239,11 +239,11 @@ For pickup / drive-thru / in-store compare, use `fulfillment_context.mode`: `"in
   "quote_preference_used": "indicative",
   "place": {
     "id": "01JPLACE8K2MCD123MAIN",
-    "name": "McDonald's — 123 Main St",
+    "name": "McDonald's — Queen St",
     "brand_id": "01JBRAND_MCD"
   },
   "query_snapshot": {
-    "dropoff_geohash": "c2b2n",
+    "dropoff_geohash": "f80t7",
     "filters": { "willing_to_use_aggregator": true, "drive_thru_ok": true },
     "memberships": ["dashpass"]
   },
@@ -300,7 +300,7 @@ For pickup / drive-thru / in-store compare, use `fulfillment_context.mode`: `"in
     "action": {
       "kind": "maps",
       "label": "Get directions",
-      "maps_url": "https://maps.example/?q=49.28,-123.12",
+      "maps_url": "https://maps.example/?q=45.9458,-66.6414",
       "deep_link": null,
       "phone_e164": null
     },
@@ -753,7 +753,7 @@ erDiagram
 
 `quote_kind`: `indicative` (cached / last seen) vs `live` (fresh). Do not mix series in charts.
 
-`quote_fee_line.kind` values we care about (MealMe-shaped):
+`quote_fee_line.kind` values we care about (aggregator fee-stack shaped):
 
 `item_subtotal` · `modifier` · `delivery` · `service` · `small_order` · `tax` · `promo` · `membership` · `order_minimum` · `eta_minutes` (eta is not money; store on the quote header).
 
@@ -831,7 +831,7 @@ sequenceDiagram
   M->>DB: listing_current + quote_current + promotions per path
   M-->>API: ranked all-in per eligible purchase path (indicative)
   opt live refresh
-    API->>M: enqueue quote scrape
+    API->>M: enqueue live quote refresh
   end
 ```
 
@@ -871,6 +871,20 @@ Rough count if we build the planes above: **~40–50 tables**, plus joins. That 
 
 ---
 
+## Decisions locked for Phase 1 catalog slice
+
+These are fixed for ingest + `GET /v1/.../source-stores` + menu browse until we revisit compare quotes.
+
+| # | Decision |
+|---|----------|
+| D21 | Fulfillment uses `fulfillment_mode` + `delivery_executor` (see migration 0004); no combined `delivery_3p` strings in new code. |
+| D27 | Fredericton launch data comes from **curated ingest** (`ACQUISITION_ADAPTER=curated`: markets + compare catalog), not live partner APIs. |
+| D15 (v1) | Quote lookup key includes `source_store`, `channel`, fulfillment path, `dropoff_geohash` (5-char for demo), `membership_tier`, `basket_subtotal_cents` on the observation row. |
+| Aggregators | `channel.kind = aggregator` for Skip, DoorDash, Uber Eats; compare filters use `willing_to_use_aggregator`. |
+| D19 | Compare remains **one place** + basket of `dish_id` lines; catalog browse is per **source store** on a channel. |
+
+---
+
 ## Open decisions
 
 | # | Topic | Draft |
@@ -884,7 +898,7 @@ Rough count if we build the planes above: **~40–50 tables**, plus joins. That 
 | D23 | **Filter defaults** | Opt-in paths (show all observed) vs opt-out (hide aggregators until user enables). Product choice. |
 | D24 | **Cross-path item parity** | Same `dish` required to compare paths, or allow “closest item per path” with warning in UI. |
 | D25 | **Recommendation tie-break** | Pure lowest all-in vs within-$X friction preference (drive-thru vs wait). v1: price wins, explain runners-up. |
-| D26 | **Phone path pricing** | Menu scrape / published PDF / “call for quote” — confidence tier on recommendation when quote is not live. |
+| D26 | **Phone path pricing** | Published menu / PDF / “call for quote” — confidence tier on recommendation when quote is not live. |
 | D12 | Promo stacking | v1: one item-scoped + one fee-scoped public promo. |
 | D15 | **Quote query grain** | `(source_store, channel, fulfillment_mode, dropoff_geohash or in_person, membership_tier, basket_subtotal_bucket)`. Refine geohash precision later. |
 | D16 | **Indicative vs live** | Store both; UI labels them; charts use one series. |
