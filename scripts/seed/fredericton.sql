@@ -23,7 +23,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO channel_market_coverage (id, channel_id, market_id, status, note) VALUES
   ('cov_skip_fredericton', 'ch_skip', 'mkt_fredericton', 'expected', 'Skip operates in Fredericton'),
   ('cov_doordash_fredericton', 'ch_doordash', 'mkt_fredericton', 'expected', 'DoorDash operates in Fredericton'),
-  ('cov_ubereats_fredericton', 'ch_ubereats', 'mkt_fredericton', 'unknown', 'Confirm with catalog API'),
+  ('cov_ubereats_fredericton', 'ch_ubereats', 'mkt_fredericton', 'unknown', 'Not confirmed in Fredericton yet'),
   ('cov_in_person_fredericton', 'ch_in_person', 'mkt_fredericton', 'expected', 'Always available'),
   ('cov_phone_fredericton', 'ch_phone', 'mkt_fredericton', 'expected', 'Always available'),
   ('cov_merchant_web_fredericton', 'ch_merchant_web', 'mkt_fredericton', 'expected', 'Per kitchen, not market-wide')

@@ -882,6 +882,13 @@ These are fixed for ingest + `GET /v1/.../source-stores` + menu browse until we 
 | D15 (v1) | Quote lookup key includes `source_store`, `channel`, fulfillment path, `dropoff_geohash` (5-char for demo), `membership_tier`, `basket_subtotal_cents` on the observation row. |
 | Aggregators | `channel.kind = aggregator` for Skip, DoorDash, Uber Eats; compare filters use `willing_to_use_aggregator`. |
 | D19 | Compare remains **one place** + basket of `dish_id` lines; catalog browse is per **source store** on a channel. |
+| D22 | In-person prices live on a **separate `source_store`** on the `in_person` / store channel, priced with `item_price_observations` like any other path. No price rows on `places`. |
+| D23 | Filters are **opt-in for aggregators, open for everything else**: aggregator paths are dropped unless `willing_to_use_aggregator = true`; other paths show when observed. Empty request filters fall back to the signed-in user's `compare_prefs`. |
+| D24 | **Strict item parity**: each basket line resolves `dish_id` → `source_item` per store via `item_matches`. A path with any unmatched or unpriced line goes to `unavailable_paths` (`basket_unpriced`); no "closest item" substitution in v1. |
+| D25 | Recommendation = **lowest all-in** (item subtotal + quote fee lines). Remaining ranked paths are `runners_up`; no friction weighting in v1. |
+| D26 | Confidence per path: `high` when a quote observation matched the D15 key; `low` when the quote is missing or a delivery path has no dropoff. Phone / published-menu paths have no live quote, so they rank on item prices at `low` confidence. |
+
+Still open and not blocking Phase 1/2 catalog work: D16 (indicative vs live labelling), D17 (match thresholds), D18 (modifiers), D20 (raw payload retention).
 
 ---
 
@@ -893,20 +900,13 @@ These are fixed for ingest + `GET /v1/.../source-stores` + menu browse until we 
 | D3 | History | Append-only snapshots + observations. Current prices are read models. |
 | D8 | Currency | Required on every money observation. No table default. |
 | D10 | Fulfillment | Meta-pricing + outbound hop. No payment spine until MoR. |
-| D21 | **Fulfillment enum** | Fixed set above; extend via migration + ingest mapping, not free-text. |
-| D22 | **In-person prices** | Separate `source_store` per `in_person` channel or price obs on `place` + mode — decide before ingest. |
-| D23 | **Filter defaults** | Opt-in paths (show all observed) vs opt-out (hide aggregators until user enables). Product choice. |
-| D24 | **Cross-path item parity** | Same `dish` required to compare paths, or allow “closest item per path” with warning in UI. |
-| D25 | **Recommendation tie-break** | Pure lowest all-in vs within-$X friction preference (drive-thru vs wait). v1: price wins, explain runners-up. |
-| D26 | **Phone path pricing** | Published menu / PDF / “call for quote” — confidence tier on recommendation when quote is not live. |
 | D12 | Promo stacking | v1: one item-scoped + one fee-scoped public promo. |
-| D15 | **Quote query grain** | `(source_store, channel, fulfillment_mode, dropoff_geohash or in_person, membership_tier, basket_subtotal_bucket)`. Refine geohash precision later. |
 | D16 | **Indicative vs live** | Store both; UI labels them; charts use one series. |
 | D17 | **Match threshold** | Auto-link stores above confidence X; items above Y; else unmatched. Human review queue. |
 | D18 | **Modifiers** | Persist source modifiers. Do not canonicalize in v1. Compare base item. |
-| D19 | **Basket grain** | Compare is per **place** + dishes. Mixing two kitchens is a different search. |
 | D20 | **Raw payload retention** | Hot: 14 days full JSON. Cold: checksum + S3 later. |
-| D27 | **Live catalog** | Curated coverage for Fredericton until we have a partner/merchant feed we are allowed to call. |
+
+D15, D19, D21–D27 moved to [Decisions locked for Phase 1 catalog slice](#decisions-locked-for-phase-1-catalog-slice).
 
 ---
 
@@ -1002,7 +1002,7 @@ Validate in the compare service (GDM), not with Postgres check constraints on JS
 - [x] Purchase paths, user filters, path-agnostic recommendations
 - [x] Illustrative compare API request/response ([Compare API shape](#compare-api-shape-illustrative))
 - [x] Visual entity diagram ([data-model-diagram.md](./data-model-diagram.md))
-- [ ] Close D15–D26 (quote grain, paths, recommendations, phone confidence, filters)
+- [x] Close D15–D26 (quote grain, paths, recommendations, phone confidence, filters) — D16–D18, D20 stay open, non-blocking
 - [x] Repository signatures per context ([repository-signatures.md](./repository-signatures.md))
 - [x] Promote compare JSON to `nibble-platform-contracts` OpenAPI (`openapi/compare/v1/openapi.yaml`)
 
