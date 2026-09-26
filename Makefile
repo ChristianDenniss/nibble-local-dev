@@ -1,7 +1,7 @@
 export BUILDKIT_PROGRESS := plain
 COMPOSE := docker compose --progress=plain
 
-.PHONY: clone build start start-detach restart down logs status
+.PHONY: clone build start start-detach restart down stop logs status
 
 ifeq ($(OS),Windows_NT)
 clone:
@@ -40,6 +40,9 @@ start-detach:
 
 down:
 	$(COMPOSE) down
+
+# Alias for down (stops this repo's compose project only).
+stop: down
 
 logs:
 	$(COMPOSE) logs -f --timestamps

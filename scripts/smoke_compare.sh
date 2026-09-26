@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
-BASE="${API_ENGINE_URL:-http://localhost:8080}"
+BASE="${API_ENGINE_URL:-http://localhost:8081}"
 
 echo "GET $BASE/health"
 curl -fsS "$BASE/health" >/dev/null
