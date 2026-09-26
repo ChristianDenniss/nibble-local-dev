@@ -7,6 +7,24 @@ services:
       POSTGRES_USER: doordash
       POSTGRES_PASSWORD: doordash
       POSTGRES_DB: doordash
+    command:
+      - postgres
+      - -c
+      - log_destination=stderr
+      - -c
+      - logging_collector=off
+      - -c
+      - log_connections=on
+      - -c
+      - log_disconnections=on
+      - -c
+      - log_statement=ddl
+      - -c
+      - log_checkpoints=on
+      - -c
+      - log_error_verbosity=verbose
+      - -c
+      - log_min_messages=info
     ports:
       - "5432:5432"
     healthcheck:

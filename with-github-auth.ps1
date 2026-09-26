@@ -16,7 +16,9 @@ if ([string]::IsNullOrWhiteSpace($token)) {
 }
 
 $env:GITHUB_TOKEN = $token
+Write-Host "gh auth: ok"
 Write-Host "Using GitHub token from gh auth for docker compose (private go mod download)."
+Write-Host ("docker compose " + ($args -join " "))
 
 if ($args.Count -lt 1) {
     throw "Usage: .\with-github-auth.ps1 <docker compose args...>"

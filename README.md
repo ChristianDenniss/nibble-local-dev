@@ -90,19 +90,32 @@ gh auth login
 `make build` passes a token from `gh auth token` into Docker for `go mod download`.
 
 ```bash
-make build       # pull images and build containers
-make up          # start postgres, api-engine, data-acquisition, web-platform
+make build       # pull images and build containers (plain progress in the terminal)
+make start       # start the stack in the foreground with live logs
 make status      # check containers
 ```
+
+**Windows (no Make):**
+
+```powershell
+.\with-github-auth.ps1 --progress=plain build
+.\start.ps1
+# or rebuild + attach in one go:
+.\start.ps1 -Build
+```
+
+`make start` / `.\start.ps1` stay attached so you see postgres init (first run creates `doordash`), api-engine migrations, and every service log. Ctrl+C stops the stack.
 
 Open [http://localhost:5173](http://localhost:5173). The page should show **200 success** after it calls `api-engine` `/health`.
 
 Other useful targets:
 
-| Target      | Description              |
-| ----------- | ------------------------ |
-| `make down` | Stop and remove containers |
-| `make logs` | Follow combined logs     |
+| Target           | Description                                      |
+| ---------------- | ------------------------------------------------ |
+| `make start-detach` | Start in the background (detached compose)     |
+| `make restart`   | Stop the stack, then start it again in the foreground |
+| `make down`      | Stop and remove containers                       |
+| `make logs`      | Follow combined logs with timestamps             |
 
 ## Versioning
 

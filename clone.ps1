@@ -55,4 +55,4 @@ foreach ($name in $Repos) {
 }
 
 Write-Host "All repos are present at latest main."
-Write-Host "Next: make build && make up"
+Write-Host "Next: make build && make start"

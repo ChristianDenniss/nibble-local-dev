@@ -46,4 +46,4 @@ for name in "${repos[@]}"; do
 done
 
 echo "All repos are present at latest main."
-echo "Next: make build && make up"
+echo "Next: make build && make start"

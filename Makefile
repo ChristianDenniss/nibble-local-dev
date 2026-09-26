@@ -1,6 +1,7 @@
-COMPOSE := docker compose
+export BUILDKIT_PROGRESS := plain
+COMPOSE := docker compose --progress=plain
 
-.PHONY: clone build up down logs status
+.PHONY: clone build start start-detach restart down logs status
 
 ifeq ($(OS),Windows_NT)
 clone:
@@ -13,19 +14,27 @@ endif
 build:
 	$(COMPOSE) pull
 ifeq ($(OS),Windows_NT)
-	powershell -NoProfile -ExecutionPolicy Bypass -File with-github-auth.ps1 build
+	powershell -NoProfile -ExecutionPolicy Bypass -File with-github-auth.ps1 --progress=plain build
 else
 	bash with-github-auth.sh $(COMPOSE) build
 endif
 
-up:
-	$(COMPOSE) up -d
+# Foreground: postgres init, migrations, and every service stream into this terminal.
+start:
+	$(COMPOSE) up --remove-orphans --timestamps
+
+start-detach:
+	$(COMPOSE) up -d --remove-orphans
+
+restart:
+	$(COMPOSE) down
+	$(COMPOSE) up --remove-orphans --timestamps
 
 down:
 	$(COMPOSE) down
 
 logs:
-	$(COMPOSE) logs -f
+	$(COMPOSE) logs -f --timestamps
 
 status:
 	$(COMPOSE) ps

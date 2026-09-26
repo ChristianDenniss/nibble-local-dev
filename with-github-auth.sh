@@ -18,7 +18,9 @@ if [[ -z "${token}" ]]; then
 fi
 
 export GITHUB_TOKEN="${token}"
+echo "gh auth: ok"
 echo "Using GitHub token from gh auth for docker compose (private go mod download)."
+echo "running: $*"
 
 if [[ "$#" -lt 1 ]]; then
   echo "Usage: ./with-github-auth.sh docker compose ..." >&2
