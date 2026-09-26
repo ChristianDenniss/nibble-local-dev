@@ -1,4 +1,4 @@
-# local-development
+# local-dev
 
 Docker Compose and Make targets for running the doordash stack on your machine.
 
@@ -21,7 +21,7 @@ doordash/
   api-engine/
   data-acquisition/
   web-platform/
-  local-development/   ← you are here
+  local-dev/   ← you are here
 ```
 
 `api-engine` and `data-acquisition` use local `replace` directives in `go.mod`, so paths must match this layout.
@@ -30,11 +30,11 @@ doordash/
 
 ### 1. Get this repo
 
-Clone only `local-development` first:
+Clone only `local-dev` first:
 
 ```bash
-git clone https://github.com/ChristianDenniss/local-development.git
-cd local-development
+git clone https://github.com/ChristianDenniss/local-dev.git
+cd local-dev
 ```
 
 On Windows (PowerShell), same URL works; use whichever shell you prefer for the steps below.
@@ -74,7 +74,7 @@ export GITHUB_OWNER=your-github-username   # bash
 $env:GITHUB_OWNER = "your-github-username" # PowerShell
 ```
 
-If `local-development`’s `origin` is on GitHub, the script can infer the owner from that remote.
+If `local-dev`’s `origin` is on GitHub, the script can infer the owner from that remote.
 
 ### 3. Build and run
 
@@ -111,4 +111,4 @@ Other useful targets:
 | api-engine           | https://github.com/ChristianDenniss/api-engine |
 | data-acquisition     | https://github.com/ChristianDenniss/data-acquisition |
 | web-platform         | https://github.com/ChristianDenniss/web-platform |
-| local-development    | https://github.com/ChristianDenniss/local-development |
+| local-dev    | https://github.com/ChristianDenniss/local-dev |

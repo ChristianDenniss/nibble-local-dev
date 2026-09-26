@@ -10,7 +10,7 @@ $Repos = @(
     "api-engine",
     "data-acquisition",
     "web-platform",
-    "local-development"
+    "local-dev"
 )
 
 function Get-GitHubOwner {

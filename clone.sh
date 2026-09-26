@@ -10,7 +10,7 @@ repos=(
   api-engine
   data-acquisition
   web-platform
-  local-development
+  local-dev
 )
 
 github_owner="${GITHUB_OWNER:-}"
