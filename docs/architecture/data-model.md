@@ -542,7 +542,7 @@ A pricing company that normalizes away the payload cannot debug a mismatch.
 
 | Table | Grain | Why |
 |-------|--------|-----|
-| `ingest_runs` | One collector pass | Provider, job type (store list / menu / quote / promo), started/finished, counts, parser version. |
+| `ingest_runs` | One collector pass | Provider, job type (`curated_seed` / `coverage_probe` / store list / menu / quote / promo), started/finished, counts, parser version. |
 | `source_snapshots` | One payload | Raw JSON, checksum, `observed_at`, `provider_id`, `external_store_id`, content type. Never update in place. |
 
 ---
@@ -675,14 +675,30 @@ Modifier matching is **out of v1**. Compare default (no extras) or let the UI pi
 
 ### Plane 4 — Serviceability
 
-Coverage is geographic and temporal, not a boolean on the brand.
+Coverage is geographic and temporal, not a boolean on the brand. There are **three layers**:
+
+| Layer | Question | Table |
+|-------|----------|--------|
+| Nibble market | Do we operate here? | `markets` |
+| Channel in market | Does Skip/DD even exist in this metro? | `channel_market_coverage` |
+| Store service area | Does this kitchen deliver to this dropoff? | `service_areas` |
 
 | Table | Grain |
 |-------|--------|
+| `markets` | One Nibble launch metro (slug, country, currency, timezone, geohash prefixes). |
+| `market_probe_dropoffs` | Representative addresses for a market (UNBF, downtown, Regent). Used when a live coverage job exists. |
+| `channel_market_coverage` | `(channel, market)` + status `expected` / `observed` / `absent` / `unknown`. |
 | `service_areas` | `(source_store, fulfillment_mode)` + radius or polygon. Merchant delivery zones ≠ Skip zones. Dropoff outside = not covered. |
 | `hours_regular` | Weekly intervals per source_store (and maybe per fulfillment). |
 | `hours_exceptions` | Holidays / temporary. |
 | `source_store_status` | Latest: paused, closed, `open_now` cache, `observed_at`. |
+
+**How coverage is collected.** Acquisition adapters write this plane. v1 sources:
+
+- **Curated seed** — city lists we maintain (`expected`). First market: Fredericton (UNBF hackathon).
+- Official partner / merchant APIs later, when a kitchen or platform signed us. Not another consumer food app.
+
+Do not treat missing `service_areas` as “not covered”; unknown store zones currently **allow** (see serviceability). Channel-in-market `absent` is what hides a whole aggregator in a city.
 
 ---
 
@@ -831,7 +847,7 @@ Rough count if we build the planes above: **~40–50 tables**, plus joins. That 
 | 1 Source | `channels`, `source_stores`, `place_purchase_options`, `source_menus`, categories/items/modifiers |
 | 2 Canonical | `brands`, `places`, `dishes`, `cuisines`, `categories`, `dietary_tags`, join tables, `*_aliases` |
 | 3 Resolution | `store_matches`, `item_matches`, `match_evidence` |
-| 4 Serviceability | `service_areas`, `hours_regular`, `hours_exceptions`, `source_store_status` |
+| 4 Serviceability | `markets`, `market_probe_dropoffs`, `channel_market_coverage`, `service_areas`, `hours_regular`, `hours_exceptions`, `source_store_status` |
 | 5 Pricing | `item_price_observations`, `quote_observations`, `quote_fee_lines` |
 | 6 Promos | `promotions`, `promotion_constraints`, `promotion_targets`, `membership_products` |
 | 7 User | `users`, `user_settings` (+ `compare_prefs` JSONB), `user_dropoffs`, `user_memberships`, `compare_sessions` (+ `result_snapshot` JSONB), `outbound_clicks`; alerts deferred |
@@ -876,6 +892,7 @@ Rough count if we build the planes above: **~40–50 tables**, plus joins. That 
 | D18 | **Modifiers** | Persist source modifiers. Do not canonicalize in v1. Compare base item. |
 | D19 | **Basket grain** | Compare is per **place** + dishes. Mixing two kitchens is a different search. |
 | D20 | **Raw payload retention** | Hot: 14 days full JSON. Cold: checksum + S3 later. |
+| D27 | **Live catalog** | Curated coverage for Fredericton until we have a partner/merchant feed we are allowed to call. |
 
 ---
 
@@ -891,7 +908,8 @@ Align packages to planes, not to today’s folders.
 | `resolution` | Matches, evidence, alias application |
 | `observation` | Item prices, quotes, fee lines |
 | `promotion` | Public promos |
-| `serviceability` | Hours, areas, status |
+| `market` | Launch geos, probe dropoffs, channel-in-market coverage |
+| `serviceability` | Hours, store areas, status |
 | `ingest` | Runs (or keep this in acquisition + store only) |
 | `user` | Settings, dropoffs, memberships, alerts |
 | `compare` | Filter paths + all-in math + **recommendation** (winner + rationale; session snapshot) |
@@ -971,17 +989,19 @@ Validate in the compare service (GDM), not with Postgres check constraints on JS
 - [x] Illustrative compare API request/response ([Compare API shape](#compare-api-shape-illustrative))
 - [x] Visual entity diagram ([data-model-diagram.md](./data-model-diagram.md))
 - [ ] Close D15–D26 (quote grain, paths, recommendations, phone confidence, filters)
-- [ ] Repository signatures per context
+- [x] Repository signatures per context ([repository-signatures.md](./repository-signatures.md))
 - [x] Promote compare JSON to `nibble-platform-contracts` OpenAPI (`openapi/compare/v1/openapi.yaml`)
 
 ### Phase 1 — Channels + source catalog + ingest
 
 - `channels` (aggregator, merchant_app, merchant_web, phone, in_person).
+- `markets` + probe dropoffs + `channel_market_coverage` (Fredericton / UNBF first).
 - Replace legacy restaurant/menu/offer with `source_stores`, menus per `fulfillment_mode`, items, modifiers.
-- `ingest_runs` + `source_snapshots` on every parse.
+- `ingest_runs` + `source_snapshots` on every parse (`curated_seed`, later store list / menu / quote).
+- Curated Fredericton coverage seed; live ingest only from sources Nibble is allowed to call.
 - `item_price_observations` per `source_item`.
 - `place_purchase_options` stub (manual or inferred paths per place).
-- gRPC ingest maps into source plane; HTTP read: single-channel menu browse.
+- gRPC ingest maps into source plane + markets; HTTP read: single-channel menu browse.
 
 ### Phase 2 — Quotes + fee stack + single-path compare
 

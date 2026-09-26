@@ -20,6 +20,10 @@ erDiagram
   DISH ||--o{ DISH_ALIAS : aliases
   BRAND ||--o{ BRAND_ALIAS : aliases
 
+  CHANNEL ||--o{ CHANNEL_MARKET_COVERAGE : covers
+  MARKET ||--o{ CHANNEL_MARKET_COVERAGE : in
+  MARKET ||--o{ PROBE_DROPOFF : probes
+
   PLACE ||--o{ PLACE_PURCHASE_OPTION : offers
   CHANNEL ||--o{ PLACE_PURCHASE_OPTION : via
   SOURCE_STORE ||--o{ PLACE_PURCHASE_OPTION : backs
@@ -85,6 +89,32 @@ erDiagram
     text slug UK
     text kind
     text name
+  }
+
+  MARKET {
+    text id PK
+    text slug UK
+    text name
+    text country
+    text status
+    text geohash_prefixes
+  }
+
+  PROBE_DROPOFF {
+    text id PK
+    text market_id FK
+    text label
+    float lat
+    float lng
+    text geohash
+  }
+
+  CHANNEL_MARKET_COVERAGE {
+    text id PK
+    text channel_id FK
+    text market_id FK
+    text status
+    int store_count
   }
 
   SOURCE_STORE {
