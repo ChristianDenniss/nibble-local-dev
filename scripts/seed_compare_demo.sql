@@ -10,7 +10,7 @@ INSERT INTO brands (id, slug, name) VALUES ('br_demo', 'demo-burger', 'Demo Burg
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO places (id, brand_id, name, latitude, longitude, address, city, region, postal_code) VALUES
-  ('pl_demo', 'br_demo', 'Demo Burger King St', 43.6532, -79.3832, '1 King St W', 'Toronto', 'ON', 'M5H 1A1')
+  ('pl_demo', 'br_demo', 'Demo Burger Queen St', 45.9636, -66.6431, '427 Queen St', 'Fredericton', 'NB', 'E3B 1B5')
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO dishes (id, brand_id, name, description) VALUES
@@ -18,8 +18,8 @@ INSERT INTO dishes (id, brand_id, name, description) VALUES
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO source_stores (id, channel_id, external_store_id, name, latitude, longitude) VALUES
-  ('ss_skip', 'ch_skip', 'ext-skip-1', 'Demo via Skip', 43.6532, -79.3832),
-  ('ss_store', 'ch_store', 'ext-store-1', 'Demo store direct', 43.6532, -79.3832)
+  ('ss_skip', 'ch_skip', 'ext-skip-1', 'Demo via Skip', 45.9636, -66.6431),
+  ('ss_store', 'ch_store', 'ext-store-1', 'Demo store direct', 45.9636, -66.6431)
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO place_purchase_options (id, place_id, channel_id, fulfillment_mode, delivery_executor, source_store_id) VALUES
@@ -56,7 +56,7 @@ INSERT INTO quote_observations (
   id, source_store_id, channel_id, fulfillment_mode, delivery_executor, dropoff_geohash,
   membership_tier, quote_kind, basket_subtotal_cents, observed_at
 ) VALUES (
-  'qo_skip', 'ss_skip', 'ch_skip', 'delivery', 'third_party', 'dpz83',
+  'qo_skip', 'ss_skip', 'ch_skip', 'delivery', 'third_party', 'f80t7',
   '', 'indicative', 1000, now()
 ) ON CONFLICT (id) DO NOTHING;
 

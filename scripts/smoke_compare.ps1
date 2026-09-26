@@ -11,7 +11,7 @@ $body = @{
   place_id = "pl_demo"
   fulfillment_context = @{
     mode = "delivery"
-    dropoff = @{ latitude = 43.6532; longitude = -79.3832 }
+    dropoff = @{ latitude = 45.9458; longitude = -66.6414 }
   }
   basket = @{ lines = @(@{ dish_id = "dish_burger"; quantity = 1 }) }
   filters = @{ willing_to_use_aggregator = $true }

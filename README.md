@@ -129,10 +129,20 @@ Open [http://localhost:5174](http://localhost:5174). The page should show **200 
 
 With the stack running, `data-acquisition` uses `ACQUISITION_ADAPTER=demo` (compose default) to load the demo catalog via **ingest v2** (same data as `scripts/seed_compare_demo.sql`).
 
+**Persistent market seed (Fredericton / UNBF):** after migrations, either run the `curated` adapter or apply SQL:
+
+```powershell
+psql postgres://nibble:nibble@localhost:5433/nibble?sslmode=disable -f scripts/seed/global.sql
+psql postgres://nibble:nibble@localhost:5433/nibble?sslmode=disable -f scripts/seed/fredericton.sql
+```
+
+Or set `ACQUISITION_ADAPTER=curated` on `data-acquisition` (after sibling modules include market ingest).
+
 1. **Web UI:** [http://localhost:5174/compare](http://localhost:5174/compare) — run compare for `pl_demo` / `dish_burger`.
 2. **Smoke script:** `.\scripts\smoke_compare.ps1` or `bash scripts/smoke_compare.sh` (hits `POST /v1/compare`).
 3. **Manual SQL seed** (optional): `psql postgres://nibble:nibble@localhost:5433/nibble?sslmode=disable -f scripts/seed_compare_demo.sql`
 4. **Storefront browse** (optional, for `VITE_MOCK=0`): `psql ... -f scripts/seed_storefront_demo.sql` then open [http://localhost:5174](http://localhost:5174) — loads `GET /storefront` for account `acct_dev`.
+5. **Source menu browse** (Phase 1): after compare seed, open [http://localhost:5174/source-menu](http://localhost:5174/source-menu) or `curl "http://localhost:8081/v1/source-stores/ss_store/menu?fulfillment_mode=pickup"`.
 
 Module pins after releases: [`docs/architecture/module-pins.md`](docs/architecture/module-pins.md).
 

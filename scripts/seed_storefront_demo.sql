@@ -19,9 +19,9 @@ INSERT INTO cuisines (id, slug, name) VALUES
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO restaurants (id, name, latitude, longitude, address, city, region, postal_code, rating_average, rating_count) VALUES
-  ('rest_koi', 'Koi Sushi', 44.6488, -63.5752, '1849 Granville St', 'Halifax', 'NS', '', 4.7, 1284),
-  ('rest_slice', 'Harbour Slice', 44.6488, -63.5752, '1569 Argyle St', 'Halifax', 'NS', '', 4.5, 892),
-  ('rest_stack', 'The Stack', 44.6488, -63.5752, '2112 Queen St', 'Halifax', 'NS', '', 4.4, 2103)
+  ('rest_koi', 'Koi Sushi', 45.9636, -66.6431, '410 Queen St', 'Fredericton', 'NB', '', 4.7, 1284),
+  ('rest_slice', 'River Slice', 45.9636, -66.6431, '394 King St', 'Fredericton', 'NB', '', 4.5, 892),
+  ('rest_stack', 'The Stack', 45.9636, -66.6431, '480 Queen St', 'Fredericton', 'NB', '', 4.4, 2103)
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO restaurant_cuisines (restaurant_id, cuisine_id) VALUES
@@ -50,11 +50,11 @@ INSERT INTO offers (id, restaurant_id, provider_id, menu_item_id, amount_cents, 
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO accounts (id, name, email, phone) VALUES
-  ('acct_dev', 'Alex Morgan', 'alex@example.com', '902-555-0148')
+  ('acct_dev', 'Alex Morgan', 'alex@example.com', '506-555-0148')
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO saved_addresses (id, account_id, label, latitude, longitude, address, city, region, postal_code, current) VALUES
-  ('addr_home', 'acct_dev', 'Home', 44.6488, -63.5752, '5423 Spring Garden Rd', 'Halifax', 'NS', 'B3J 1M1', true)
+  ('addr_home', 'acct_dev', 'UNBF', 45.9458, -66.6414, '3 Bailey Dr', 'Fredericton', 'NB', 'E3B 5A3', true)
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO payment_methods (id, account_id, brand, last4, exp_month, exp_year, is_default) VALUES
