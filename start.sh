@@ -7,13 +7,26 @@ if [[ "${1:-}" == "--build" ]]; then
 fi
 
 echo
-echo "=== web-platform local-dev ==="
+echo "=== local-dev stack ==="
 echo "Starting postgres, api-engine, data-acquisition, web-platform in the foreground."
 echo "You will see image/container progress, database init, migrations, and service logs."
 echo "Ctrl+C stops the stack."
 echo
 
 export BUILDKIT_PROGRESS=plain
+
+stack_images_present() {
+  local name
+  for name in doordash-api-engine doordash-data-acquisition doordash-web-platform; do
+    docker image inspect "$name" >/dev/null 2>&1 || return 1
+  done
+  return 0
+}
+
+if [[ "${build}" -eq 0 ]] && ! stack_images_present; then
+  echo "Stack images are missing. Building with GitHub token from gh auth..."
+  build=1
+fi
 
 if [[ "${build}" -eq 1 ]]; then
   echo "Building images (GitHub token from gh auth), then attaching logs..."

@@ -1,7 +1,7 @@
 $ErrorActionPreference = "Stop"
 
 Write-Host ""
-Write-Host "=== web-platform local-dev ==="
+Write-Host "=== local-dev stack ==="
 Write-Host "Stopping the stack, then starting it again in the foreground."
 Write-Host "Ctrl+C stops the stack."
 Write-Host ""

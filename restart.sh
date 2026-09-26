@@ -2,7 +2,7 @@
 set -euo pipefail
 
 echo
-echo "=== web-platform local-dev ==="
+echo "=== local-dev stack ==="
 echo "Stopping the stack, then starting it again in the foreground."
 echo "Ctrl+C stops the stack."
 echo

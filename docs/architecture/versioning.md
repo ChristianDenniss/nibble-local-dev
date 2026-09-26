@@ -79,9 +79,14 @@ repos). It is not used in Dockerfiles or Release verify jobs.
 
 Release order when changing a shared type:
 
-1. Merge and release the library (`feat:` → new tag).
-2. Bump the service: `go get github.com/ChristianDenniss/go-data-model@vX.Y.Z` (with
-   `GOWORK=off` in CI) and merge the service PR.
+1. Merge and release `go-data-model` (`feat:` → new tag).
+2. If persistence changed, bump and release `go-data-store` against that model tag.
+3. Bump the service: `go get github.com/ChristianDenniss/go-data-model@vX.Y.Z`
+   (and `go-data-store` / `platform-contracts` as needed) with `GOWORK=off`, then merge
+   the service PR.
+
+`go-data-model` **v1.1.0** is the first split-package release (`restaurant/entity`, …).
+Do not pin services at **v1.0.0** — that tag is the pre-split scaffold.
 
 ---
 
@@ -111,16 +116,22 @@ Maintenance branch names match troj: `1.2.x`, `1.x` (see `.releaserc.json`).
 
 ## 7. Auth for private Go modules
 
-`go-data-model` and `platform-contracts` are private. **`go mod download`** must run as
-an authenticated GitHub user.
+`go-data-model`, `go-data-store`, and `platform-contracts` are private. **`go mod download`**
+must run as an authenticated GitHub user. Set the same host-side env when running `go`
+outside Docker:
 
-**Local (`make build`):** run **`gh auth login`** once. `with-github-auth` reads
-`gh auth token` and passes it to Docker for that build only — no PAT file in the repo.
+```bash
+export GOPRIVATE=github.com/ChristianDenniss/*
+export GONOSUMDB=github.com/ChristianDenniss/*
+```
+
+**Local (`make build` / first `make start`):** run **`gh auth login`** once. `with-github-auth`
+reads `gh auth token` and passes it to Docker for that build only — no PAT file in the repo.
 
 **GitHub Actions:** the default `GITHUB_TOKEN` cannot read other private repos. Whoever
 owns the org/account adds a classic PAT as repo secret **`GH_PAT`** on
-`api-engine`, `data-acquisition`, and `local-dev` if they want Release verify to pass
-(optional one-time setup in GitHub Settings, not in source control).
+`api-engine`, `data-acquisition`, `go-data-store`, and `local-dev` if they want Release
+verify to pass (optional one-time setup in GitHub Settings, not in source control).
 
 ---
 

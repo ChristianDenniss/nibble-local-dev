@@ -51,6 +51,12 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8080/health"]
+      interval: 2s
+      timeout: 3s
+      retries: 20
+      start_period: 5s
 
   data-acquisition:
     build:
@@ -61,7 +67,8 @@ services:
     environment:
       API_ENGINE_GRPC_ADDR: api-engine:9090
     depends_on:
-      - api-engine
+      api-engine:
+        condition: service_healthy
 
   web-platform:
     build:
@@ -72,7 +79,8 @@ services:
     ports:
       - "5173:5173"
     depends_on:
-      - api-engine
+      api-engine:
+        condition: service_healthy
 
 volumes:
   postgres_data:

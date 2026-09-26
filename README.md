@@ -30,7 +30,7 @@ doordash/
   local-dev/   ← you are here
 ```
 
-`api-engine` depends on **`go-data-model`**, **`go-data-store`**, and **`platform-contracts`** as **versioned Go modules from GitHub** (release tags like `v1.0.0` in each service’s `go.mod`). Optional **`go.work`** here is only for editing multiple repos at once on your machine (see [Go modules](#go-modules-compile-time-deps)).
+`api-engine` depends on **`go-data-model`**, **`go-data-store`**, and **`platform-contracts`** as **versioned Go modules from GitHub** (current pins start at `go-data-model@v1.1.0`). Optional **`go.work`** here is only for editing multiple repos at once on your machine (see [Go modules](#go-modules-compile-time-deps)).
 
 ## Onboarding (new developers)
 
@@ -93,6 +93,7 @@ gh auth login
 ### 4. Build and run
 
 `make build` passes a token from `gh auth token` into Docker for `go mod download`.
+A first `make start` does the same if the stack images are not on the machine yet.
 
 ```bash
 make build       # pull images and build containers (plain progress in the terminal)
@@ -132,8 +133,17 @@ PRs with `feat:` / `fix:` titles, get `vX.Y.Z` **GitHub Releases** on `main`. Se
 ## Go modules (compile-time deps)
 
 `go-data-model`, `go-data-store`, and `platform-contracts` are versioned Go modules; their git release
-tags (`v1.0.0`, …) are what `go get` uses. Services pin those versions in `go.mod` (no
-committed `replace`).
+tags (`v1.1.0`, …) are what `go get` uses. Services pin those versions in `go.mod` (no
+committed `replace`). Host-side Go commands against private modules need:
+
+```bash
+export GOPRIVATE=github.com/ChristianDenniss/*
+export GONOSUMDB=github.com/ChristianDenniss/*
+```
+
+In Docker, leave `VITE_API_URL` unset. Compose uses `API_ENGINE_URL` so the Vite
+dev server proxies `/health` to `api-engine`. `web-platform` waits until
+`api-engine` reports healthy on `:8080`.
 
 **CI and Docker** — build only this service’s repo and fetch deps with `go mod download`
 from GitHub at the versions in `go.mod` / `go.sum` (same as production).
@@ -147,7 +157,7 @@ $env:GOWORK = "$PWD\go.work"            # PowerShell
 ```
 
 Do not commit `replace` directives in service repos; bump deps with
-`go get github.com/ChristianDenniss/go-data-model@vX.Y.Z` after a library release.
+`go get github.com/ChristianDenniss/go-data-model@v1.1.0` after a library release.
 
 ## Ports
 

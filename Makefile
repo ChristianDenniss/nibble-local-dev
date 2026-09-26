@@ -20,15 +20,23 @@ else
 endif
 
 # Foreground: postgres init, migrations, and every service stream into this terminal.
+# Routes through start/restart scripts so a first run can build with gh auth.
+ifeq ($(OS),Windows_NT)
 start:
-	$(COMPOSE) up --remove-orphans --timestamps
+	powershell -NoProfile -ExecutionPolicy Bypass -File start.ps1
+
+restart:
+	powershell -NoProfile -ExecutionPolicy Bypass -File restart.ps1
+else
+start:
+	bash start.sh
+
+restart:
+	bash restart.sh
+endif
 
 start-detach:
 	$(COMPOSE) up -d --remove-orphans
-
-restart:
-	$(COMPOSE) down
-	$(COMPOSE) up --remove-orphans --timestamps
 
 down:
 	$(COMPOSE) down

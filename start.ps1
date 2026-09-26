@@ -5,7 +5,7 @@ param(
 $ErrorActionPreference = "Stop"
 
 Write-Host ""
-Write-Host "=== web-platform local-dev ==="
+Write-Host "=== local-dev stack ==="
 Write-Host "Starting postgres, api-engine, data-acquisition, web-platform in the foreground."
 Write-Host "You will see image/container progress, database init, migrations, and service logs."
 Write-Host "Ctrl+C stops the stack."
@@ -13,7 +13,21 @@ Write-Host ""
 
 $env:BUILDKIT_PROGRESS = "plain"
 
-if ($Build) {
+function Test-StackImages {
+    foreach ($name in @('doordash-api-engine', 'doordash-data-acquisition', 'doordash-web-platform')) {
+        docker image inspect $name *> $null
+        if ($LASTEXITCODE -ne 0) { return $false }
+    }
+    return $true
+}
+
+$needBuild = [bool]$Build
+if (-not $needBuild -and -not (Test-StackImages)) {
+    Write-Host "Stack images are missing. Building with GitHub token from gh auth..."
+    $needBuild = $true
+}
+
+if ($needBuild) {
     Write-Host "Building images (GitHub token from gh auth), then attaching logs..."
     powershell -NoProfile -ExecutionPolicy Bypass -File .\with-github-auth.ps1 --progress=plain up --build --remove-orphans --timestamps
     exit $LASTEXITCODE
