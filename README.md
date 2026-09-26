@@ -96,7 +96,8 @@ gh auth login
 A first `make start` does the same if the stack images are not on the machine yet.
 
 ```bash
-make build       # pull images and build containers (plain progress in the terminal)
+make pull        # optional: refresh base images (postgres, node, …)
+make build       # build service images (uses BuildKit; does not re-pull every time)
 make start       # start the stack in the foreground with live logs
 make status      # check containers
 ```
@@ -139,6 +140,7 @@ Other useful targets:
 
 | Target           | Description                                      |
 | ---------------- | ------------------------------------------------ |
+| `make pull`      | Refresh upstream base images (postgres, node, …) |
 | `make start-detach` | Start in the background (detached compose)     |
 | `make restart`   | Stop the stack, then start it again in the foreground |
 | `make down` / `make stop` | Stop and remove **this** stack (`nibble-local-dev` compose only) |
