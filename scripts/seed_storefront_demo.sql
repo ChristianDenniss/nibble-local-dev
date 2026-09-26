@@ -3,7 +3,11 @@
 
 INSERT INTO providers (id, name) VALUES
   ('prov_skip', 'Skip'),
-  ('prov_doordash', 'DoorDash')
+  ('prov_doordash', 'DoorDash'),
+  ('prov_ubereats', 'Uber Eats'),
+  ('prov_instacart', 'Instacart'),
+  ('prov_grubhub', 'Grubhub'),
+  ('prov_fantuan', 'Fantuan')
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO categories (id, slug, name, description) VALUES
@@ -45,8 +49,12 @@ ON CONFLICT (id) DO NOTHING;
 INSERT INTO offers (id, restaurant_id, provider_id, menu_item_id, amount_cents, currency, estimated_minutes) VALUES
   ('off_koi_tuna_skip', 'rest_koi', 'prov_skip', 'item_koi_tuna', 1499, 'CAD', 28),
   ('off_koi_tuna_dd', 'rest_koi', 'prov_doordash', 'item_koi_tuna', 1649, 'CAD', 32),
+  ('off_koi_tuna_ue', 'rest_koi', 'prov_ubereats', 'item_koi_tuna', 1579, 'CAD', 30),
+  ('off_koi_tuna_ft', 'rest_koi', 'prov_fantuan', 'item_koi_tuna', 1459, 'CAD', 34),
   ('off_slice_pep_skip', 'rest_slice', 'prov_skip', 'item_slice_pepperoni', 2199, 'CAD', 24),
-  ('off_stack_classic_skip', 'rest_stack', 'prov_skip', 'item_stack_classic', 1599, 'CAD', 20)
+  ('off_slice_pep_ue', 'rest_slice', 'prov_ubereats', 'item_slice_pepperoni', 2149, 'CAD', 27),
+  ('off_stack_classic_skip', 'rest_stack', 'prov_skip', 'item_stack_classic', 1599, 'CAD', 20),
+  ('off_stack_classic_ic', 'rest_stack', 'prov_instacart', 'item_stack_classic', 1729, 'CAD', 35)
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO accounts (id, name, email, phone) VALUES
