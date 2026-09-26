@@ -19,24 +19,24 @@ jobs:
     steps:
       - uses: actions/checkout@v5
         with:
-          path: doordash/local-dev
+          path: nibble/nibble-local-dev
       - uses: actions/checkout@v5
         with:
-          repository: ${{ github.repository_owner }}/api-engine
-          path: doordash/api-engine
+          repository: ${{ github.repository_owner }}/nibble-api-engine
+          path: nibble/nibble-api-engine
           token: ${{ secrets.GH_PAT }}
       - uses: actions/checkout@v5
         with:
-          repository: ${{ github.repository_owner }}/data-acquisition
-          path: doordash/data-acquisition
+          repository: ${{ github.repository_owner }}/nibble-data-acquisition
+          path: nibble/nibble-data-acquisition
           token: ${{ secrets.GH_PAT }}
       - uses: actions/checkout@v5
         with:
-          repository: ${{ github.repository_owner }}/web-platform
-          path: doordash/web-platform
+          repository: ${{ github.repository_owner }}/nibble-web-platform
+          path: nibble/nibble-web-platform
           token: ${{ secrets.GH_PAT }}
       - run: docker compose -f docker-compose.yml config
-        working-directory: doordash/local-dev
+        working-directory: nibble/nibble-local-dev
 
   release:
     name: Tag & Release
