@@ -4,7 +4,7 @@ Canonical interfaces live in `nibble-go-data-model/*/repository`. `nibble-go-dat
 
 | Context | Port | Key methods |
 |---------|------|-------------|
-| **source** | `StoreRepository` | `GetByID`, `GetByChannelExternal`, `Upsert` |
+| **source** | `StoreRepository` | `GetByID`, `GetByChannelExternal`, `ListByChannel`, `Upsert` |
 | **source** | `MenuRepository` | `GetByID`, `ListByStore`, `Upsert` |
 | **source** | `CategoryRepository` | `ListByMenu`, `Upsert` |
 | **source** | `ItemRepository` | `ListByCategory`, `Upsert` |

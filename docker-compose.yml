@@ -68,7 +68,7 @@ services:
         GITHUB_TOKEN: ${GITHUB_TOKEN}
     environment:
       API_ENGINE_GRPC_ADDR: api-engine:9090
-      ACQUISITION_ADAPTER: demo
+      ACQUISITION_ADAPTER: curated
     depends_on:
       api-engine:
         condition: service_healthy
