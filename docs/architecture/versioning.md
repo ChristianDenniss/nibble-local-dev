@@ -70,9 +70,12 @@ Release tooling is installed ephemerally in CI (not in app `package-lock.json`).
 Library repos (`go-data-model`, `platform-contracts`) publish **Go module versions**
 that match their git tags (`v1.2.3` → `go get …@v1.2.3`).
 
-Services (`api-engine`, `data-acquisition`) pin those modules in **`go.mod`** at
-released versions. For local work against sibling checkouts, use **`go.work`** in
-`local-dev` (see the root `README.md`).
+Services (`api-engine`, `data-acquisition`) pin those modules in **`go.mod`** / **`go.sum`**
+at released GitHub tags. **Docker and CI** build each service repo alone and run
+`go mod download` — they do not compile against sibling folders on disk.
+
+Optional **`go.work`** in `local-dev` is for developers only (simultaneous edits across
+repos). It is not used in Dockerfiles or Release verify jobs.
 
 Release order when changing a shared type:
 
@@ -106,7 +109,19 @@ Maintenance branch names match troj: `1.2.x`, `1.x` (see `.releaserc.json`).
 
 ---
 
-## 7. Dry run locally
+## 7. CI and local Docker auth for private modules
+
+`go-data-model` and `platform-contracts` are private GitHub repos. **`go mod download`**
+needs a classic PAT (repo scope):
+
+- **GitHub Actions:** secret **`GH_PAT`** on `api-engine`, `data-acquisition`, and
+  `local-dev` (Release verify / compose config).
+- **Local Docker:** **`GITHUB_TOKEN`** in `local-dev/.env` (see `.env.example`) for
+  `docker compose build`.
+
+---
+
+## 8. Dry run locally
 
 Same pins as `release.yml`:
 

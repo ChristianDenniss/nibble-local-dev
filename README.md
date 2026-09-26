@@ -24,7 +24,7 @@ doordash/
   local-dev/   ← you are here
 ```
 
-`api-engine` and `data-acquisition` import versioned Go modules (`go-data-model`, `platform-contracts` at semver tags like **v0.1.0**). For local compiles against sibling checkouts, use the **`go.work`** file in this repo (see [Go module versions](#go-module-versions)).
+`api-engine` and `data-acquisition` depend on **`go-data-model`** and **`platform-contracts`** as **versioned Go modules from GitHub** (release tags like `v1.0.0` in each service’s `go.mod`). Optional **`go.work`** here is only for editing multiple repos at once on your machine (see [Go modules](#go-modules-compile-time-deps)).
 
 ## Onboarding (new developers)
 
@@ -78,6 +78,9 @@ If `local-dev`’s `origin` is on GitHub, the script can infer the owner from th
 
 ### 3. Build and run
 
+Copy `.env.example` to `.env` and set **`GITHUB_TOKEN`** (PAT with `repo` scope) so Docker
+can `go mod download` private modules when building `api-engine` and `data-acquisition`.
+
 ```bash
 make build       # pull images and build containers
 make up          # start postgres, api-engine, data-acquisition, web-platform
@@ -106,14 +109,19 @@ PRs with `feat:` / `fix:` titles, get `vX.Y.Z` **GitHub Releases** on `main`. Se
 tags (`v1.0.0`, …) are what `go get` uses. Services pin those versions in `go.mod` (no
 committed `replace`).
 
-**Local compile** — use the workspace file in this repo:
+**CI and Docker** — build only this service’s repo and fetch deps with `go mod download`
+from GitHub at the versions in `go.mod` / `go.sum` (same as production).
+
+**Optional local multi-repo edit** — `go.work` overrides module paths to sibling folders
+while you change libraries and services together:
 
 ```bash
 export GOWORK="$(pwd)/go.work"          # bash, from this directory
 $env:GOWORK = "$PWD\go.work"            # PowerShell
 ```
 
-**Docker Compose** builds generate a `go.work` inside the image from sibling folders.
+Do not commit `replace` directives in service repos; bump deps with
+`go get github.com/ChristianDenniss/go-data-model@vX.Y.Z` after a library release.
 
 ## Ports
 

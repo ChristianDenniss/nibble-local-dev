@@ -19,8 +19,10 @@ services:
 
   api-engine:
     build:
-      context: ..
-      dockerfile: api-engine/Dockerfile
+      context: ../api-engine
+      dockerfile: Dockerfile
+      args:
+        GITHUB_TOKEN: ${GITHUB_TOKEN}
     environment:
       DATABASE_URL: postgres://doordash:doordash@postgres:5432/doordash?sslmode=disable
       HTTP_ADDR: :8080
@@ -34,8 +36,10 @@ services:
 
   data-acquisition:
     build:
-      context: ..
-      dockerfile: data-acquisition/Dockerfile
+      context: ../data-acquisition
+      dockerfile: Dockerfile
+      args:
+        GITHUB_TOKEN: ${GITHUB_TOKEN}
     environment:
       API_ENGINE_GRPC_ADDR: api-engine:9090
     depends_on:

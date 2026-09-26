@@ -19,29 +19,24 @@ jobs:
     steps:
       - uses: actions/checkout@v5
         with:
-          path: local-dev
-      - uses: actions/checkout@v5
-        with:
-          repository: ${{ github.repository_owner }}/go-data-model
-          path: go-data-model
-      - uses: actions/checkout@v5
-        with:
-          repository: ${{ github.repository_owner }}/platform-contracts
-          path: platform-contracts
+          path: doordash/local-dev
       - uses: actions/checkout@v5
         with:
           repository: ${{ github.repository_owner }}/api-engine
-          path: api-engine
+          path: doordash/api-engine
+          token: ${{ secrets.GH_PAT }}
       - uses: actions/checkout@v5
         with:
           repository: ${{ github.repository_owner }}/data-acquisition
-          path: data-acquisition
+          path: doordash/data-acquisition
+          token: ${{ secrets.GH_PAT }}
       - uses: actions/checkout@v5
         with:
           repository: ${{ github.repository_owner }}/web-platform
-          path: web-platform
+          path: doordash/web-platform
+          token: ${{ secrets.GH_PAT }}
       - run: docker compose -f docker-compose.yml config
-        working-directory: local-dev
+        working-directory: doordash/local-dev
 
   release:
     name: Tag & Release
