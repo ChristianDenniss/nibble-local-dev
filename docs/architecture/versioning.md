@@ -128,10 +128,13 @@ export GONOSUMDB=github.com/ChristianDenniss/*
 **Local (`make build` / first `make start`):** run **`gh auth login`** once. `with-github-auth`
 reads `gh auth token` and passes it to Docker for that build only — no PAT file in the repo.
 
-**GitHub Actions:** the default `GITHUB_TOKEN` cannot read other private repos. Whoever
-owns the org/account adds a classic PAT as repo secret **`GH_PAT`** on
-`api-engine`, `data-acquisition`, `go-data-store`, and `local-dev` if they want Release
-verify to pass (optional one-time setup in GitHub Settings, not in source control).
+**GitHub Actions:** editing or pushing `.github/workflows/*.yml` does **not** require a
+repo secret. Workflows use the built-in **`GITHUB_TOKEN`** for semantic-release on that
+repo. You only need extra auth if a **verify** job must download Go modules or check out
+**other private** repos (e.g. `api-engine` pulling `go-data-model`). Then add optional
+secret **`GH_PAT`** on that service repo, or make those library repos public so verify
+can run with no PAT. Pushing workflow changes from your machine may need `gh auth refresh
+-s workflow` — that is OAuth scope on your login, not `GH_PAT` in GitHub Settings.
 
 ---
 
