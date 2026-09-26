@@ -14,9 +14,9 @@ Library repos publish tags via semantic-release. Services pin those tags in `go.
 ```bash
 cd nibble-api-engine
 set GOWORK=off   # Windows; use export GOWORK=off on Unix
-go get github.com/ChristianDenniss/platform-contracts@v1.2.0
-go get github.com/ChristianDenniss/go-data-model@v1.4.0
-go get github.com/ChristianDenniss/go-data-store@v1.1.0
+go get github.com/ChristianDenniss/platform-contracts@v1.3.0
+go get github.com/ChristianDenniss/go-data-model@v1.5.0
+go get github.com/ChristianDenniss/go-data-store@v1.2.0
 go mod tidy
 ```
 
@@ -32,8 +32,8 @@ Use `nibble-local-dev/go.work` — do not add `replace` directives to service `g
 
 | Module | Pin |
 |--------|-----|
-| platform-contracts | `v1.2.0` |
-| go-data-model | `v1.4.0` |
-| go-data-store | `v1.1.0` |
+| platform-contracts | `v1.3.0` |
+| go-data-model | `v1.5.0` |
+| go-data-store | `v1.2.0` |
 
 `nibble-go-data-store` vendors `go-data-model` for Release verify (no `GH_PAT` required).

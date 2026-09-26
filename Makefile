@@ -1,7 +1,7 @@
 export BUILDKIT_PROGRESS := plain
 COMPOSE := docker compose --progress=plain
 
-.PHONY: clone build start start-detach restart down logs status
+.PHONY: clone pull build start start-detach restart down stop logs status
 
 ifeq ($(OS),Windows_NT)
 clone:
@@ -11,8 +11,10 @@ clone:
 	bash clone.sh
 endif
 
-build:
+pull:
 	$(COMPOSE) pull
+
+build:
 ifeq ($(OS),Windows_NT)
 	powershell -NoProfile -ExecutionPolicy Bypass -File with-github-auth.ps1 --progress=plain build
 else
@@ -40,6 +42,9 @@ start-detach:
 
 down:
 	$(COMPOSE) down
+
+# Alias for down (stops this repo's compose project only).
+stop: down
 
 logs:
 	$(COMPOSE) logs -f --timestamps

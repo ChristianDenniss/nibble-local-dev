@@ -1,7 +1,7 @@
-# Smoke test: health + compare demo (requires stack on localhost:8080).
+# Smoke test: health + compare demo (requires stack on localhost:8081).
 $ErrorActionPreference = "Stop"
 $base = $env:API_ENGINE_URL
-if (-not $base) { $base = "http://localhost:8080" }
+if (-not $base) { $base = "http://localhost:8081" }
 
 Write-Host "GET $base/health"
 $h = Invoke-WebRequest -Uri "$base/health" -UseBasicParsing
