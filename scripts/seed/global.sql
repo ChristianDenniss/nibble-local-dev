@@ -5,6 +5,9 @@ INSERT INTO channels (id, slug, kind, name) VALUES
   ('ch_skip', 'skip', 'aggregator', 'SkipTheDishes'),
   ('ch_doordash', 'doordash', 'aggregator', 'DoorDash'),
   ('ch_ubereats', 'ubereats', 'aggregator', 'Uber Eats'),
+  ('ch_instacart', 'instacart', 'aggregator', 'Instacart'),
+  ('ch_grubhub', 'grubhub', 'aggregator', 'Grubhub'),
+  ('ch_fantuan', 'fantuan', 'aggregator', 'Fantuan'),
   ('ch_merchant_web', 'merchant-web', 'merchant_web', 'Merchant website'),
   ('ch_phone', 'phone', 'phone', 'Phone order'),
   ('ch_in_person', 'in-person', 'in_person', 'In person')
@@ -14,6 +17,8 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO membership_products (id, channel_id, name, slug) VALUES
   ('mp_dashpass', 'ch_doordash', 'DashPass', 'dashpass'),
   ('mp_uber_one', 'ch_ubereats', 'Uber One', 'uber-one'),
-  ('mp_skip_plus', 'ch_skip', 'Skip+', 'skip-plus')
+  ('mp_skip_plus', 'ch_skip', 'Skip+', 'skip-plus'),
+  ('mp_instacart_plus', 'ch_instacart', 'Instacart+', 'instacart-plus'),
+  ('mp_grubhub_plus', 'ch_grubhub', 'Grubhub+', 'grubhub-plus')
 ON CONFLICT (id) DO UPDATE SET
   channel_id = EXCLUDED.channel_id, name = EXCLUDED.name, slug = EXCLUDED.slug;
