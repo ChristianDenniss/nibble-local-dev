@@ -67,7 +67,7 @@ Release tooling is installed ephemerally in CI (not in app `package-lock.json`).
 
 ## 4. Go modules between repos
 
-Library repos (`go-data-model`, `platform-contracts`) publish **Go module versions**
+Library repos (`go-data-model`, `go-data-store`, `platform-contracts`) publish **Go module versions**
 that match their git tags (`v1.2.3` → `go get …@v1.2.3`).
 
 Services (`api-engine`, `data-acquisition`) pin those modules in **`go.mod`** / **`go.sum`**

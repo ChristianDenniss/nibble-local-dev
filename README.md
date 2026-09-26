@@ -1,6 +1,10 @@
 # local-dev
 
-Docker Compose and Make targets for running the doordash stack on your machine.
+Orchestrates the sibling repos as one local stack: clone them, build images, start Postgres and the services, and stream logs.
+
+**Why this repo exists:** nobody should have to remember five Dockerfiles and a database URL. Local development is a product of its own. This repo is that product — not a service, and not the domain.
+
+Docker Compose and Make targets for running the stack on your machine.
 
 ## Prerequisites
 
@@ -18,6 +22,7 @@ All services live as **sibling folders** under one workspace directory:
 ```text
 doordash/
   go-data-model/
+  go-data-store/
   platform-contracts/
   api-engine/
   data-acquisition/
@@ -25,7 +30,7 @@ doordash/
   local-dev/   ← you are here
 ```
 
-`api-engine` and `data-acquisition` depend on **`go-data-model`** and **`platform-contracts`** as **versioned Go modules from GitHub** (release tags like `v1.0.0` in each service’s `go.mod`). Optional **`go.work`** here is only for editing multiple repos at once on your machine (see [Go modules](#go-modules-compile-time-deps)).
+`api-engine` depends on **`go-data-model`**, **`go-data-store`**, and **`platform-contracts`** as **versioned Go modules from GitHub** (release tags like `v1.0.0` in each service’s `go.mod`). Optional **`go.work`** here is only for editing multiple repos at once on your machine (see [Go modules](#go-modules-compile-time-deps)).
 
 ## Onboarding (new developers)
 
@@ -126,7 +131,7 @@ PRs with `feat:` / `fix:` titles, get `vX.Y.Z` **GitHub Releases** on `main`. Se
 
 ## Go modules (compile-time deps)
 
-`go-data-model` and `platform-contracts` are versioned Go modules; their git release
+`go-data-model`, `go-data-store`, and `platform-contracts` are versioned Go modules; their git release
 tags (`v1.0.0`, …) are what `go get` uses. Services pin those versions in `go.mod` (no
 committed `replace`).
 
@@ -158,6 +163,7 @@ Do not commit `replace` directives in service repos; bump deps with
 | Folder               | GitHub |
 | -------------------- | ------ |
 | go-data-model        | https://github.com/ChristianDenniss/go-data-model |
+| go-data-store        | https://github.com/ChristianDenniss/go-data-store |
 | platform-contracts   | https://github.com/ChristianDenniss/platform-contracts |
 | api-engine           | https://github.com/ChristianDenniss/api-engine |
 | data-acquisition     | https://github.com/ChristianDenniss/data-acquisition |

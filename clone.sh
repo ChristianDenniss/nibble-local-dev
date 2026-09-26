@@ -6,6 +6,7 @@ WORKSPACE_ROOT="$(cd "${LOCAL_DEV_ROOT}/.." && pwd)"
 
 repos=(
   go-data-model
+  go-data-store
   platform-contracts
   api-engine
   data-acquisition

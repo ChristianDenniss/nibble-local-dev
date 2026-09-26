@@ -6,6 +6,7 @@ $WorkspaceRoot = Split-Path -Parent $LocalDevRoot
 
 $Repos = @(
     "go-data-model",
+    "go-data-store",
     "platform-contracts",
     "api-engine",
     "data-acquisition",
