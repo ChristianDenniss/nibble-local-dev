@@ -1,0 +1,8 @@
+go 1.23
+
+use (
+	../go-data-model
+	../platform-contracts
+	../api-engine
+	../data-acquisition
+)
