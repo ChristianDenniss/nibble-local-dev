@@ -156,7 +156,7 @@ Module pins after releases: [`docs/architecture/module-pins.md`](docs/architectu
 `api-engine` owns sessions: `POST /v1/auth/signup`, `/v1/auth/login`, `/v1/auth/logout`, `GET /v1/auth/me`, plus Google / Apple OAuth under `/v1/auth/oauth/{provider}/start|callback`. The browser gets an HttpOnly `nibble_session` cookie through the Vite `/api` proxy, so the web app and API share one origin.
 
 - **Email + password** works with no config. After `seed_storefront_demo.sql`, log in as `alex@example.com` / `nibble-demo`. With the web mock adapter (the default), the same demo login works without the API.
-- **Google:** create an OAuth client (type *Web application*) in Google Cloud Console, add `http://localhost:5174/api/v1/auth/oauth/google/callback` as an authorized redirect URI, and put `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` in `.env` (see [`.env.example`](.env.example)). Use `VITE_MOCK=0` on the web app so it talks to the real API.
+- **Google:** create an OAuth client (type *Web application*) in Google Cloud Console, add `http://localhost:5174/api/v1/auth/oauth/google/callback` as an authorized redirect URI, and put `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` in `.env` (see [`.env.example`](.env.example)). Authentication uses the real API even when the pictured catalog is enabled. Set `VITE_AUTH_MODE=mock` only for isolated UI testing.
 - **Apple:** needs an Apple Developer account (Services ID, Sign in with Apple key) and an **HTTPS** redirect URI, which Apple requires. Point `OAUTH_CALLBACK_BASE_URL` at a public HTTPS origin (for example a tunnel to port 5174), set `AUTH_COOKIE_SECURE=true`, and fill the `APPLE_*` variables.
 
 SSO buttons stay disabled until their provider is configured (`GET /v1/auth/providers`).
@@ -234,3 +234,16 @@ Do not commit `replace` directives in service repos; bump deps with
 | nibble-data-acquisition   | https://github.com/ChristianDenniss/nibble-data-acquisition |
 | nibble-web-platform       | https://github.com/ChristianDenniss/nibble-web-platform |
 | nibble-local-dev          | https://github.com/ChristianDenniss/nibble-local-dev |
+
+### Google sign-in local setup
+
+1. Copy `.env.example` to `.env` in this repository. Add the Google Web application client ID and secret locally; never put secrets in `VITE_*` variables or Git.
+2. In Google Cloud, configure the consent screen and add test users while the app is in testing. Register exactly `http://localhost:5174/api/v1/auth/oauth/google/callback` as the authorized redirect URI.
+3. Set `OAUTH_CALLBACK_BASE_URL=http://localhost:5174/api`. Run `docker compose up -d --build api-engine web-platform` from this directory.
+4. Open `http://localhost:5174/login`. Google becomes enabled when the API has both credentials. Complete consent, reload to verify the cookie session persists, then log out to verify it is cleared.
+
+For the separately running Vite catalog preview, point `API_ENGINE_URL` at the auth-capable API (the Compose HTTP default is `http://localhost:8081`) and start Vite on port 5174. Restart the API after changing credentials. If using another frontend port, register that exact callback with Google and update `OAUTH_CALLBACK_BASE_URL` too.
+
+The catalog preview still serves catalog/account demo data; a real login does not turn its mocked addresses or orders into persistent user data. Use `VITE_MOCK=0` for the fully backend-connected app.
+
+Provider reference: https://developers.google.com/identity/protocols/oauth2/web-server
