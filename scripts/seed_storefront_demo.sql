@@ -49,19 +49,31 @@ ON CONFLICT (id) DO NOTHING;
 INSERT INTO restaurants (id, name, latitude, longitude, address, city, region, postal_code, rating_average, rating_count, phone, app_url) VALUES
   ('rest_koi', 'Koi Sushi', 45.9636, -66.6431, '410 Queen St', 'Fredericton', 'NB', '', 4.7, 1284, '506-555-0110', 'https://apps.apple.com/ca/app/koi-sushi/id0000000001'),
   ('rest_slice', 'River Slice', 45.9636, -66.6431, '394 King St', 'Fredericton', 'NB', '', 4.5, 892, '506-555-0122', ''),
-  ('rest_stack', 'The Stack', 45.9636, -66.6431, '480 Queen St', 'Fredericton', 'NB', '', 4.4, 2103, '', 'https://apps.apple.com/ca/app/the-stack/id0000000002')
+  ('rest_stack', 'The Stack', 45.9636, -66.6431, '480 Queen St', 'Fredericton', 'NB', '', 4.4, 2103, '', 'https://apps.apple.com/ca/app/the-stack/id0000000002'),
+  ('rest_wendys_main', 'Wendy''s (370 Main Street)', 45.9636, -66.6431, '370 Main Street', 'Fredericton', 'NB', '', 4.2, 0, '', ''),
+  ('rest_wendys_prospect', 'Wendy''s (967 Prospect St)', 45.9636, -66.6431, '967 Prospect St', 'Fredericton', 'NB', '', 4.2, 0, '', ''),
+  ('rest_mcdonalds_prospect', 'McDonald''s (1177 Prospect St)', 45.9636, -66.6431, '1177 Prospect St', 'Fredericton', 'NB', '', 4.1, 0, '', ''),
+  ('rest_mcdonalds_nashwaaksis', 'McDonald''s (Nashwaaksis)', 45.9830, -66.6500, 'Nashwaaksis', 'Fredericton', 'NB', '', 4.1, 0, '', '')
 ON CONFLICT (id) DO UPDATE SET phone = EXCLUDED.phone, app_url = EXCLUDED.app_url;
 
 INSERT INTO restaurant_cuisines (restaurant_id, cuisine_id) VALUES
   ('rest_koi', 'cui_sushi'),
   ('rest_slice', 'cui_pizza'),
-  ('rest_stack', 'cui_burgers')
+  ('rest_stack', 'cui_burgers'),
+  ('rest_wendys_main', 'cui_burgers'),
+  ('rest_wendys_prospect', 'cui_burgers'),
+  ('rest_mcdonalds_prospect', 'cui_burgers'),
+  ('rest_mcdonalds_nashwaaksis', 'cui_burgers')
 ON CONFLICT DO NOTHING;
 
 INSERT INTO restaurant_categories (restaurant_id, category_id) VALUES
   ('rest_koi', 'cat_food'),
   ('rest_slice', 'cat_food'),
-  ('rest_stack', 'cat_food')
+  ('rest_stack', 'cat_food'),
+  ('rest_wendys_main', 'cat_food'),
+  ('rest_wendys_prospect', 'cat_food'),
+  ('rest_mcdonalds_prospect', 'cat_food'),
+  ('rest_mcdonalds_nashwaaksis', 'cat_food')
 ON CONFLICT DO NOTHING;
 
 -- Store vs delivery hours differ on purpose. Days: 0 = Sunday. Requires migration 0010_restaurant_hours.

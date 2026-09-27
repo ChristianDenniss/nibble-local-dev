@@ -6,20 +6,44 @@
 INSERT INTO promotions (id, channel_id, name, description, kind, fulfillment_mode, value_cents, value_bps, currency, starts_at, ends_at) VALUES
   ('promo_koi_pickup', 'ch_merchant_web', 'Koi Sushi pickup deal', '20% off when you order pickup direct from Koi.', 'percent_off', 'pickup', 0, 2000, 'CAD', '2026-01-01 00:00:00-04', '2027-12-31 23:59:59-04'),
   ('promo_slice_free_delivery', 'ch_ubereats', 'Free delivery on River Slice', 'No delivery fee on Uber Eats this month.', 'free_delivery', 'delivery', 0, 0, 'CAD', '2026-01-01 00:00:00-04', '2027-12-31 23:59:59-04'),
-  ('promo_stack_5_off', 'ch_doordash', '$5 off The Stack', '', 'amount_off', '', 500, 0, 'CAD', '2026-01-01 00:00:00-04', '2027-12-31 23:59:59-04')
+  ('promo_stack_5_off', 'ch_doordash', '$5 off The Stack', '', 'amount_off', '', 500, 0, 'CAD', '2026-01-01 00:00:00-04', '2027-12-31 23:59:59-04'),
+  ('promo_skip_wendys_40_today', 'ch_skip', '40% off Wendy''s', 'Get 40% off Wendy''s on Skip with code FH9221B1. Minimum $30 spend. Today only.', 'percent_off', 'delivery', 0, 4000, 'CAD', '2026-09-27 00:00:00-03', '2026-09-27 23:59:59-03'),
+  ('promo_skip_cibc_welcome_20', 'ch_skip', '$20 off with CIBC + Skip+', 'Eligible CIBC cardholders get a $20 welcome voucher on a Skip+ order of $40 or more. Check My Skip for eligibility.', 'amount_off', 'delivery', 2000, 0, 'CAD', '2026-01-01 00:00:00-04', '2027-12-31 23:59:59-04'),
+  ('promo_skip_cibc_monthly_10', 'ch_skip', '$10 monthly Skip voucher', 'Eligible CIBC cardholders get a $10 Skip voucher after four orders of $30 or more in a calendar month. Check My Skip for eligibility.', 'amount_off', 'delivery', 1000, 0, 'CAD', '2026-01-01 00:00:00-04', '2027-12-31 23:59:59-04'),
+  ('promo_mcd_value_meal_5', 'ch_merchant_web', '$5 McValue Meals', 'Selected McValue Meals are $5 at participating McDonald''s locations. In-store or drive-thru only; not available through delivery.', 'fixed_price', 'pickup', 500, 0, 'CAD', '2026-01-13 00:00:00-04', '2027-01-12 23:59:59-04'),
+  ('promo_mcd_coffee_1', 'ch_merchant_web', '$1 small McCafé coffee', 'Small McCafé Premium Roast coffee is $1 at participating McDonald''s locations. In-store or drive-thru only; not available through delivery.', 'fixed_price', 'pickup', 100, 0, 'CAD', '2026-01-13 00:00:00-04', '2027-01-12 23:59:59-04')
 ON CONFLICT (id) DO UPDATE SET
   name = EXCLUDED.name, description = EXCLUDED.description, kind = EXCLUDED.kind,
   fulfillment_mode = EXCLUDED.fulfillment_mode, value_cents = EXCLUDED.value_cents, value_bps = EXCLUDED.value_bps,
   starts_at = EXCLUDED.starts_at, ends_at = EXCLUDED.ends_at, updated_at = now();
 
 INSERT INTO promotion_constraints (id, promotion_id, min_subtotal_cents) VALUES
-  ('pc_stack_5_off_min', 'promo_stack_5_off', 2500)
+  ('pc_stack_5_off_min', 'promo_stack_5_off', 2500),
+  ('pc_skip_wendys_40_min', 'promo_skip_wendys_40_today', 3000),
+  ('pc_skip_cibc_welcome_min', 'promo_skip_cibc_welcome_20', 4000),
+  ('pc_skip_cibc_monthly_min', 'promo_skip_cibc_monthly_10', 3000),
+  ('pc_mcd_value_meal', 'promo_mcd_value_meal_5', 0),
+  ('pc_mcd_coffee', 'promo_mcd_coffee_1', 0)
 ON CONFLICT (id) DO UPDATE SET min_subtotal_cents = EXCLUDED.min_subtotal_cents;
+
+UPDATE promotion_constraints
+SET code = 'FH9221B1'
+WHERE id = 'pc_skip_wendys_40_min';
+
+UPDATE promotion_constraints
+SET membership_required = true
+WHERE id IN ('pc_skip_cibc_welcome_min', 'pc_skip_cibc_monthly_min');
 
 INSERT INTO promotion_targets (id, promotion_id, legacy_restaurant_id) VALUES
   ('pt_koi_pickup', 'promo_koi_pickup', 'rest_koi'),
   ('pt_slice_free_delivery', 'promo_slice_free_delivery', 'rest_slice'),
-  ('pt_stack_5_off', 'promo_stack_5_off', 'rest_stack')
+  ('pt_stack_5_off', 'promo_stack_5_off', 'rest_stack'),
+  ('pt_skip_wendys_40_main', 'promo_skip_wendys_40_today', 'rest_wendys_main'),
+  ('pt_skip_wendys_40_prospect', 'promo_skip_wendys_40_today', 'rest_wendys_prospect'),
+  ('pt_mcd_value_meal_prospect', 'promo_mcd_value_meal_5', 'rest_mcdonalds_prospect'),
+  ('pt_mcd_value_meal_nashwaaksis', 'promo_mcd_value_meal_5', 'rest_mcdonalds_nashwaaksis'),
+  ('pt_mcd_coffee_prospect', 'promo_mcd_coffee_1', 'rest_mcdonalds_prospect'),
+  ('pt_mcd_coffee_nashwaaksis', 'promo_mcd_coffee_1', 'rest_mcdonalds_nashwaaksis')
 ON CONFLICT (id) DO UPDATE SET legacy_restaurant_id = EXCLUDED.legacy_restaurant_id;
 
 -- Advertisers pay Nibble for labelled placements (never affects compare, D28)
