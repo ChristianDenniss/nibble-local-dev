@@ -21,7 +21,7 @@ Ownership:
   store and item read tables; atomic import and repeatable-read catalog queries.
 - **api-engine:** private ingestion and public `GET /v1/catalog` orchestration.
 - **web-platform:** restaurant → menu → cart → whole-cart provider comparisons, provider logos,
-  addresses, honest missing-price/fee states. Login/intro appearance preserved.
+  addresses, honest missing-price/fee states. UI follows the merged web repository commit fb77d61.
 
 The browse read model is separate from existing quote/checkout tables. It does
 not fabricate fulfillment context or feed unknown fees into checkout. Extending
@@ -64,3 +64,19 @@ Whole-cart arithmetic runs in `go-data-model/catalog/cart.go`, exposed by
 `POST /v1/catalog/cart-comparison`. The web persists only item identities and
 quantities; the API reads all prices. Missing items keep the provider’s full
 subtotal unknown, and unknown basket fees are never summed or guessed.
+
+SkipTheDishes is supported as a third provider, initially with the reviewed
+520 Smythe St Taco Boyz branch. Direct retrieval returned a host-side 403 and unsupported HTML in the worker,
+so current coverage is explicitly partial. Adding Skip does not
+claim availability at other branches. Provider failures cannot renew prices.
+
+Handoff is a separate API step: `POST /v1/catalog/cart-handoff` validates the
+chosen basket/provider and returns an honest menu-link fallback plus copyable
+order text. Creating a cart in the external app is not implemented without a
+supported provider integration. Item subtotal ranking excludes incomplete and
+starting-price baskets; a cheapest delivered option requires address-specific
+fees, taxes, modifiers and promotion eligibility from provider quotes.
+
+The web UI now follows upstream `fb77d61`: welcome/login, header, global styles,
+shared restaurant cards, menu section styling and cart title components. The
+`/browse` URL remains an alias, with `/` as the repository’s home route.
