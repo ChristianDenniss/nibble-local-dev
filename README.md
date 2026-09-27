@@ -1,5 +1,9 @@
 # nibble-local-dev
 
+Current catalog setup and repository ownership: [CATALOG.md](CATALOG.md).
+Compose builds now use sibling checkouts; no GitHub build token is needed.
+
+
 Orchestrates the sibling Nibble repos as one local stack: clone them, build images, start Postgres and the services, and stream logs.
 
 **Why this repo exists:** nobody should have to remember five Dockerfiles and a database URL. Local development is a product of its own. This repo is that product — not a service, and not the domain.
@@ -9,7 +13,7 @@ Docker Compose and Make targets for running the stack on your machine.
 ## Prerequisites
 
 - [Git](https://git-scm.com/)
-- [GitHub CLI](https://cli.github.com/) (`gh auth login` — used for private Go module download during `make build`)
+- [GitHub CLI](https://cli.github.com/) (`gh auth login` — used to clone private repositories)
 - [Docker Desktop](https://www.docker.com/products/docker-desktop/) (or Docker Engine + Compose)
 - [Make](https://www.gnu.org/software/make/) (optional but recommended)
 
@@ -30,7 +34,7 @@ nibble/
   nibble-local-dev/   ← you are here
 ```
 
-`nibble-api-engine` depends on **`nibble-go-data-model`**, **`nibble-go-data-store`**, and **`nibble-platform-contracts`** as **versioned Go modules from GitHub**. Optional **`go.work`** here is only for editing multiple repos at once on your machine (see [Go modules](#go-modules-compile-time-deps)).
+`nibble-api-engine` depends on `nibble-go-data-model`, `nibble-go-data-store`, and `nibble-platform-contracts`. Compose builds these from sibling checkouts through a Go workspace; `go.work` provides the same resolution for local tests.
 
 ## Onboarding (new developers)
 
@@ -84,7 +88,7 @@ If `nibble-local-dev`’s `origin` is on GitHub, the script can infer the owner 
 
 ### 3. Authenticate with GitHub
 
-Private module downloads use **your** GitHub session (nothing stored in this repo):
+Cloning private repositories uses your GitHub session:
 
 ```bash
 gh auth login
@@ -92,8 +96,8 @@ gh auth login
 
 ### 4. Build and run
 
-`make build` passes a token from `gh auth token` into Docker for `go mod download`.
-A first `make start` does the same if the stack images are not on the machine yet.
+`make build` builds the sibling checkouts through Go workspaces.
+A first `make start` builds the images if they are missing.
 
 ```bash
 make build       # pull images and build containers (plain progress in the terminal)
@@ -104,7 +108,7 @@ make status      # check containers
 **Windows (no Make):**
 
 ```powershell
-.\with-github-auth.ps1 --progress=plain build
+docker compose --progress=plain build
 .\start.ps1
 # or rebuild + attach in one go:
 .\start.ps1 -Build
@@ -112,11 +116,11 @@ make status      # check containers
 
 `make start` / `.\start.ps1` stay attached so you see postgres init (first run creates `nibble`), api-engine migrations, and every service log. Ctrl+C stops the stack.
 
-Open [http://localhost:5173](http://localhost:5173). The page should show **200 success** after it calls `api-engine` `/health`.
+Open [http://localhost:5173](http://localhost:5173). Open `/browse` to explore the imported restaurant catalog.
 
 ### Compare vertical slice (demo)
 
-With the stack running, `data-acquisition` uses `ACQUISITION_ADAPTER=demo` (compose default) to load the demo catalog via **ingest v2** (same data as `scripts/seed_compare_demo.sql`).
+The default worker now collects Uber Eats and DoorDash. The older compare demo can still be seeded manually using `scripts/seed_compare_demo.sql`; it is separate from the provider browse read model.
 
 1. **Web UI:** [http://localhost:5173/compare](http://localhost:5173/compare) — run compare for `pl_demo` / `dish_burger`.
 2. **Smoke script:** `.\scripts\smoke_compare.ps1` or `bash scripts/smoke_compare.sh` (hits `POST /v1/compare`).
@@ -155,10 +159,10 @@ In Docker, leave `VITE_API_URL` unset. Compose uses `API_ENGINE_URL` so the Vite
 dev server proxies `/health` to `api-engine`. `nibble-web-platform` waits until
 `api-engine` reports healthy on `:8080`.
 
-**CI and Docker** — build only this service’s repo and fetch deps with `go mod download`
-from GitHub at the versions in `go.mod` / `go.sum` (same as production).
+**Local Compose** builds sibling source through Go workspaces. Standalone CI/release
+builds require publishing the coordinated library changes and bumping module pins.
 
-**Optional local multi-repo edit** — `go.work` overrides module paths to sibling folders
+**Host multi-repo edit** — `go.work` overrides module paths to sibling folders
 while you change libraries and services together:
 
 ```bash

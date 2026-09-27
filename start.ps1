@@ -23,13 +23,13 @@ function Test-StackImages {
 
 $needBuild = [bool]$Build
 if (-not $needBuild -and -not (Test-StackImages)) {
-    Write-Host "Stack images are missing. Building with GitHub token from gh auth..."
+    Write-Host "Stack images are missing. Building from sibling checkouts..."
     $needBuild = $true
 }
 
 if ($needBuild) {
-    Write-Host "Building images (GitHub token from gh auth), then attaching logs..."
-    powershell -NoProfile -ExecutionPolicy Bypass -File .\with-github-auth.ps1 --progress=plain up --build --remove-orphans --timestamps
+    Write-Host "Building sibling repositories, then attaching logs..."
+    docker compose --progress=plain up --build --remove-orphans --timestamps
     exit $LASTEXITCODE
 }
 

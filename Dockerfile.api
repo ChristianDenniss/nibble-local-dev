@@ -1,0 +1,13 @@
+FROM golang:1.23-bookworm AS build
+WORKDIR /workspace
+COPY nibble-go-data-model ./nibble-go-data-model
+COPY nibble-go-data-store ./nibble-go-data-store
+COPY nibble-platform-contracts ./nibble-platform-contracts
+COPY nibble-api-engine ./nibble-api-engine
+RUN go work init ./nibble-go-data-model ./nibble-go-data-store ./nibble-platform-contracts ./nibble-api-engine && go work edit -replace=github.com/ChristianDenniss/go-data-model@v1.4.0=./nibble-go-data-model -replace=github.com/ChristianDenniss/go-data-store@v1.1.0=./nibble-go-data-store -replace=github.com/ChristianDenniss/platform-contracts@v1.2.0=./nibble-platform-contracts && cd nibble-api-engine && CGO_ENABLED=0 go build -o /api-engine ./cmd/api-engine
+FROM debian:bookworm-slim
+RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates curl && rm -rf /var/lib/apt/lists/*
+COPY --from=build /api-engine /usr/local/bin/api-engine
+USER 65534:65534
+EXPOSE 8080 9090
+ENTRYPOINT ["/usr/local/bin/api-engine"]

@@ -24,13 +24,13 @@ stack_images_present() {
 }
 
 if [[ "${build}" -eq 0 ]] && ! stack_images_present; then
-  echo "Stack images are missing. Building with GitHub token from gh auth..."
+  echo "Stack images are missing. Building from sibling checkouts..."
   build=1
 fi
 
 if [[ "${build}" -eq 1 ]]; then
-  echo "Building images (GitHub token from gh auth), then attaching logs..."
-  exec "$(dirname "$0")/with-github-auth.sh" docker compose --progress=plain up --build --remove-orphans --timestamps
+  echo "Building sibling repositories, then attaching logs..."
+  exec docker compose --progress=plain up --build --remove-orphans --timestamps
 fi
 
 echo "Attaching to compose (use ./start.sh --build to rebuild images first)..."

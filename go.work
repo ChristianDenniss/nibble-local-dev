@@ -7,3 +7,9 @@ use (
 	../nibble-go-data-store
 	../nibble-platform-contracts
 )
+
+// Resolve pinned private module graphs locally as well as their source packages.
+replace github.com/ChristianDenniss/go-data-model v1.4.0 => ../nibble-go-data-model
+replace github.com/ChristianDenniss/go-data-store v1.1.0 => ../nibble-go-data-store
+replace github.com/ChristianDenniss/platform-contracts v1.1.0 => ../nibble-platform-contracts
+replace github.com/ChristianDenniss/platform-contracts v1.2.0 => ../nibble-platform-contracts
