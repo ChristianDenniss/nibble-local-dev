@@ -1,0 +1,17 @@
+{
+  "market": "Fredericton / UNB Fredericton",
+  "researched_at": "2026-09-27",
+  "scope": "Businesses on or near UNBF, plus Oromocto as a nearby expansion area",
+  "records": [
+    {"id":"rest_unbf_tims","name":"Tim Hortons - UNB Student Union Building","phone":"506-458-5401","website":"https://locations.timhortons.ca/en/nb/fredericton/612-king-st/","app_or_order_url":"https://www.timhortons.ca/app","source":"https://locations.timhortons.ca/en/nb/fredericton/612-king-st/"},
+    {"id":"rest_cellar","name":"The Cellar Pub","phone":"506-451-1009","website":"https://cellarpub.ca/","app_or_order_url":"https://cellarpub.ca/","source":"https://cellarpub.ca/"},
+    {"id":"rest_unbf_catertrax","name":"UNB Fredericton Food Services","phone":"506-458-2898","website":"https://unb-fredericton.catertrax.com/","app_or_order_url":"https://unb-fredericton.catertrax.com/","source":"https://unb-fredericton.catertrax.com/"},
+    {"id":"rest_rocket_burger","name":"Rocket Burger","phone":"506-206-6636","website":"https://www.rocketburger.ca/","app_or_order_url":"https://www.rocketburger.ca/","source":"https://www.rocketburger.ca/contact/"},
+    {"id":"rest_stlouis","name":"St. Louis Bar & Grill","phone":"506-455-1025","website":"https://locations.stlouiswings.com/fredericton","app_or_order_url":"https://locations.stlouiswings.com/fredericton","source":"https://locations.stlouiswings.com/fredericton"},
+    {"id":"rest_moco","name":"MoCo Downtown","phone":"506-455-6626","website":"https://mocodowntown.ca/","app_or_order_url":"https://mocodowntown.ca/","source":"https://mocodowntown.ca/"},
+    {"id":"rest_540_north","name":"540 North","phone":"506-429-5500","website":"https://www.540kitchenandbar.com/contact-1","app_or_order_url":"https://www.540kitchenandbar.com/contact-1","source":"https://www.540kitchenandbar.com/contact-1"},
+    {"id":"rest_diamond_house","name":"Diamond House Chinese Restaurant","phone":"506-357-8811","website":"https://diamondhousechineserestaurantnb.com/","app_or_order_url":"https://diamondhousechineserestaurantnb.com/","source":"https://diamondhousechineserestaurantnb.com/"},
+    {"id":"rest_pizza_delight_oromocto","name":"Pizza Delight - Oromocto Mall","phone":"506-357-3359","website":"https://www.pizzadelight.com/oromocto-mall","app_or_order_url":"https://www.pizzadelight.com/oromocto-mall","source":"https://www.pizzadelight.com/oromocto-mall"},
+    {"id":"rest_spicy_roots","name":"Spicy Roots Bistro","phone":"506-700-2179","website":"https://spicyrootsbistro.com/","app_or_order_url":"https://spicyrootsbistro.com/","source":"https://spicyrootsbistro.com/"}
+  ]
+}
