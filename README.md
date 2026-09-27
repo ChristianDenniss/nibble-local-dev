@@ -142,9 +142,27 @@ Or set `ACQUISITION_ADAPTER=curated` on `data-acquisition` (after sibling module
 2. **Smoke script:** `.\scripts\smoke_compare.ps1` or `bash scripts/smoke_compare.sh` (hits `POST /v1/compare`).
 3. **Manual SQL seed** (optional): `psql postgres://nibble:nibble@localhost:5433/nibble?sslmode=disable -f scripts/seed_compare_demo.sql`
 4. **Storefront browse** (optional, for `VITE_MOCK=0`): `psql ... -f scripts/seed_storefront_demo.sql` then open [http://localhost:5174](http://localhost:5174) — loads `GET /storefront` for account `acct_dev`.
+   Add `-f scripts/seed_merchandising_demo.sql` for Home banners, deals, and sponsored rails (`GET /v1/home`).
 5. **Source catalog E2E** (Phase 1): `.\scripts\smoke_catalog_e2e.ps1` (lists `ch_store` stores, then menu). Web: [http://localhost:5174/source-menu](http://localhost:5174/source-menu).
 
 Module pins after releases: [`docs/architecture/module-pins.md`](docs/architecture/module-pins.md).
+
+### Sign-in
+
+`api-engine` owns sessions: `POST /v1/auth/signup`, `/v1/auth/login`, `/v1/auth/logout`, `GET /v1/auth/me`, plus Google / Apple OAuth under `/v1/auth/oauth/{provider}/start|callback`. The browser gets an HttpOnly `nibble_session` cookie through the Vite `/api` proxy, so the web app and API share one origin.
+
+- **Email + password** works with no config. After `seed_storefront_demo.sql`, log in as `alex@example.com` / `nibble-demo`. With the web mock adapter (the default), the same demo login works without the API.
+- **Google:** create an OAuth client (type *Web application*) in Google Cloud Console, add `http://localhost:5174/api/v1/auth/oauth/google/callback` as an authorized redirect URI, and put `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` in `.env` (see [`.env.example`](.env.example)). Use `VITE_MOCK=0` on the web app so it talks to the real API.
+- **Apple:** needs an Apple Developer account (Services ID, Sign in with Apple key) and an **HTTPS** redirect URI, which Apple requires. Point `OAUTH_CALLBACK_BASE_URL` at a public HTTPS origin (for example a tunnel to port 5174), set `AUTH_COOKIE_SECURE=true`, and fill the `APPLE_*` variables.
+
+SSO buttons stay disabled until their provider is configured (`GET /v1/auth/providers`).
+
+**Not in the MVP (needed later):**
+
+- Rate limiting / lockout on `POST /v1/auth/login` and `/signup`.
+- Password reset (forgot-password email + reset token).
+- Email verification for password sign-ups (SSO accounts are already provider-verified).
+- A real guest storefront: signed-out visitors currently fall back to `DEFAULT_ACCOUNT_ID` (`acct_dev`) for addresses, cart, and orders.
 
 Other useful targets:
 

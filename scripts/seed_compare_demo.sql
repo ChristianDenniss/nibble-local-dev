@@ -37,9 +37,9 @@ INSERT INTO source_categories (id, source_menu_id, name) VALUES
   ('cat_skip', 'menu_skip_del', 'Mains')
 ON CONFLICT (id) DO NOTHING;
 
-INSERT INTO source_items (id, source_category_id, name) VALUES
-  ('si_store_burger', 'cat_store', 'Classic Burger'),
-  ('si_skip_burger', 'cat_skip', 'Classic Burger')
+INSERT INTO source_items (id, source_category_id, name, image_url) VALUES
+  ('si_store_burger', 'cat_store', 'Classic Burger', 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=480&q=80&auto=format&fit=crop'),
+  ('si_skip_burger', 'cat_skip', 'Classic Burger', 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=480&q=80&auto=format&fit=crop')
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO item_matches (id, source_item_id, dish_id, confidence, status, method) VALUES

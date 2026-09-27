@@ -52,6 +52,13 @@ erDiagram
   PROMOTION ||--o{ PROMOTION_TARGET : scopes
   MEMBERSHIP_PRODUCT ||--o{ USER_MEMBERSHIP : declared
 
+  ADVERTISER ||--o{ SPONSORED_CAMPAIGN : runs
+  SPONSORED_CAMPAIGN ||--o{ SPONSORED_PLACEMENT : has
+  SPONSORED_PLACEMENT ||--o{ SPONSORED_EVENT : logs
+  BRAND ||--o{ ADVERTISER : pays
+  PLACE ||--o{ SPONSORED_PLACEMENT : promoted
+  PROMOTION ||--o{ SPONSORED_PLACEMENT : featured
+
   USER ||--|| USER_SETTINGS : has
   USER ||--|| USER_COMPARE_PREF : filters
   USER ||--o{ USER_DROPOFF : addresses
@@ -311,7 +318,9 @@ erDiagram
     text id PK
     text channel_id FK
     text name
+    text description
     text kind
+    text fulfillment_mode
     timestamptz starts_at
     timestamptz ends_at
   }
@@ -331,6 +340,7 @@ erDiagram
     text source_store_id FK
     text source_item_id FK
     text dish_id FK
+    text legacy_restaurant_id FK
   }
 
   MEMBERSHIP_PRODUCT {
@@ -338,6 +348,43 @@ erDiagram
     text channel_id FK
     text name
     text slug
+  }
+
+  ADVERTISER {
+    text id PK
+    text name
+    text brand_id FK
+    text status
+  }
+
+  SPONSORED_CAMPAIGN {
+    text id PK
+    text advertiser_id FK
+    text market_id FK
+    text status
+    timestamptz starts_at
+    timestamptz ends_at
+    text pricing_model
+    bigint bid_cents
+  }
+
+  SPONSORED_PLACEMENT {
+    text id PK
+    text campaign_id FK
+    text slot
+    int priority
+    text legacy_restaurant_id FK
+    text place_id FK
+    text promotion_id FK
+    text headline
+  }
+
+  SPONSORED_EVENT {
+    text id PK
+    text placement_id FK
+    text kind
+    text surface
+    timestamptz occurred_at
   }
 
   USER {

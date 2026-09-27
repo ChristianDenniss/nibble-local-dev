@@ -13,20 +13,44 @@ ON CONFLICT (id) DO NOTHING;
 INSERT INTO categories (id, slug, name, description) VALUES
   ('cat_food', 'food', 'Food', 'Restaurants near you'),
   ('cat_grocery', 'grocery', 'Grocery', 'Same-day grocery'),
-  ('cat_pickup', 'pickup', 'Pickup', 'Skip the delivery fee')
+  ('cat_convenience', 'convenience', 'Convenience', 'Snacks and essentials'),
+  ('cat_alcohol', 'alcohol', 'Alcohol', 'Beer, wine, and more'),
+  ('cat_pickup', 'pickup', 'Pickup', 'Skip the delivery fee'),
+  ('cat_retail', 'retail', 'Retail', 'Stores and extras'),
+  ('cat_pets', 'pets', 'Pets', 'Food and supplies'),
+  ('cat_pharmacy', 'pharmacy', 'Pharmacy', 'Health and wellness'),
+  ('cat_flowers', 'flowers', 'Flowers', 'Bouquets and plants'),
+  ('cat_baby', 'baby', 'Baby', 'Diapers, formula, and more'),
+  ('cat_beauty', 'beauty', 'Beauty', 'Skincare and cosmetics'),
+  ('cat_bakery', 'bakery', 'Bakery', 'Fresh bread and pastries'),
+  ('cat_gifts', 'gifts', 'Gifts', 'Last-minute presents')
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO cuisines (id, slug, name) VALUES
   ('cui_sushi', 'sushi', 'Sushi'),
   ('cui_pizza', 'pizza', 'Pizza'),
-  ('cui_burgers', 'burgers', 'Burgers')
+  ('cui_burgers', 'burgers', 'Burgers'),
+  ('cui_mexican', 'mexican', 'Mexican'),
+  ('cui_indian', 'indian', 'Indian'),
+  ('cui_coffee', 'coffee', 'Coffee'),
+  ('cui_healthy', 'healthy', 'Healthy'),
+  ('cui_dessert', 'dessert', 'Dessert'),
+  ('cui_chinese', 'chinese', 'Chinese'),
+  ('cui_thai', 'thai', 'Thai'),
+  ('cui_seafood', 'seafood', 'Seafood'),
+  ('cui_sandwiches', 'sandwiches', 'Sandwiches'),
+  ('cui_wings', 'wings', 'Wings'),
+  ('cui_breakfast', 'breakfast', 'Breakfast'),
+  ('cui_vegan', 'vegan', 'Vegan'),
+  ('cui_donuts', 'donuts', 'Donuts')
 ON CONFLICT (id) DO NOTHING;
 
-INSERT INTO restaurants (id, name, latitude, longitude, address, city, region, postal_code, rating_average, rating_count) VALUES
-  ('rest_koi', 'Koi Sushi', 45.9636, -66.6431, '410 Queen St', 'Fredericton', 'NB', '', 4.7, 1284),
-  ('rest_slice', 'River Slice', 45.9636, -66.6431, '394 King St', 'Fredericton', 'NB', '', 4.5, 892),
-  ('rest_stack', 'The Stack', 45.9636, -66.6431, '480 Queen St', 'Fredericton', 'NB', '', 4.4, 2103)
-ON CONFLICT (id) DO NOTHING;
+-- phone / app_url: direct ordering paths (empty = not offered). Demo values, not real businesses.
+INSERT INTO restaurants (id, name, latitude, longitude, address, city, region, postal_code, rating_average, rating_count, phone, app_url) VALUES
+  ('rest_koi', 'Koi Sushi', 45.9636, -66.6431, '410 Queen St', 'Fredericton', 'NB', '', 4.7, 1284, '506-555-0110', 'https://apps.apple.com/ca/app/koi-sushi/id0000000001'),
+  ('rest_slice', 'River Slice', 45.9636, -66.6431, '394 King St', 'Fredericton', 'NB', '', 4.5, 892, '506-555-0122', ''),
+  ('rest_stack', 'The Stack', 45.9636, -66.6431, '480 Queen St', 'Fredericton', 'NB', '', 4.4, 2103, '', 'https://apps.apple.com/ca/app/the-stack/id0000000002')
+ON CONFLICT (id) DO UPDATE SET phone = EXCLUDED.phone, app_url = EXCLUDED.app_url;
 
 INSERT INTO restaurant_cuisines (restaurant_id, cuisine_id) VALUES
   ('rest_koi', 'cui_sushi'),
@@ -40,11 +64,31 @@ INSERT INTO restaurant_categories (restaurant_id, category_id) VALUES
   ('rest_stack', 'cat_food')
 ON CONFLICT DO NOTHING;
 
-INSERT INTO menu_items (id, restaurant_id, name, description, section) VALUES
-  ('item_koi_tuna', 'rest_koi', 'Spicy Tuna Roll', 'Tuna, chili mayo, cucumber, sesame.', 'Rolls'),
-  ('item_slice_pepperoni', 'rest_slice', 'Pepperoni Pie', '14 inch hand-stretched pepperoni.', 'Pizzas'),
-  ('item_stack_classic', 'rest_stack', 'Classic Smash', 'Two smash patties, American cheese.', 'Burgers')
-ON CONFLICT (id) DO NOTHING;
+-- Store vs delivery hours differ on purpose. Days: 0 = Sunday. Requires migration 0010_restaurant_hours.
+DELETE FROM restaurant_hours WHERE restaurant_id IN ('rest_koi', 'rest_slice', 'rest_stack');
+INSERT INTO restaurant_hours (restaurant_id, service, day_of_week, opens, closes)
+SELECT h.restaurant_id, h.service, d.day, h.opens, h.closes
+FROM (VALUES
+  ('rest_koi',   'store',    ARRAY[0, 2, 3, 4, 5, 6], '11:30', '21:30'),
+  ('rest_koi',   'delivery', ARRAY[0, 2, 3, 4, 5, 6], '12:00', '21:00'),
+  ('rest_slice', 'store',    ARRAY[0, 1, 2, 3, 4],    '11:00', '23:00'),
+  ('rest_slice', 'store',    ARRAY[5, 6],             '11:00', '02:00'),
+  ('rest_slice', 'delivery', ARRAY[0, 1, 2, 3, 4],    '11:00', '22:30'),
+  ('rest_slice', 'delivery', ARRAY[5, 6],             '11:00', '01:00'),
+  ('rest_stack', 'store',    ARRAY[0, 1, 2, 3, 4, 5, 6], '11:00', '22:00'),
+  ('rest_stack', 'delivery', ARRAY[0, 1, 2, 3, 4, 5, 6], '16:00', '21:30')
+) AS h(restaurant_id, service, days, opens, closes)
+CROSS JOIN LATERAL unnest(h.days) AS d(day);
+
+-- image_url: external photos (no hosting yet). Change later with PUT /v1/menu-items/{id}/image.
+INSERT INTO menu_items (id, restaurant_id, name, description, section, image_url) VALUES
+  ('item_koi_tuna', 'rest_koi', 'Spicy Tuna Roll', 'Tuna, chili mayo, cucumber, sesame.', 'Rolls',
+    'https://images.unsplash.com/photo-1579871494447-9811cf80d66c?w=480&q=80&auto=format&fit=crop'),
+  ('item_slice_pepperoni', 'rest_slice', 'Pepperoni Pie', '14 inch hand-stretched pepperoni.', 'Pizzas',
+    'https://images.unsplash.com/photo-1628840042765-356cda07504e?w=480&q=80&auto=format&fit=crop'),
+  ('item_stack_classic', 'rest_stack', 'Classic Smash', 'Two smash patties, American cheese.', 'Burgers',
+    'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=480&q=80&auto=format&fit=crop')
+ON CONFLICT (id) DO UPDATE SET image_url = EXCLUDED.image_url WHERE menu_items.image_url = '';
 
 INSERT INTO offers (id, restaurant_id, provider_id, menu_item_id, amount_cents, currency, estimated_minutes) VALUES
   ('off_koi_tuna_skip', 'rest_koi', 'prov_skip', 'item_koi_tuna', 1499, 'CAD', 28),
@@ -60,6 +104,11 @@ ON CONFLICT (id) DO NOTHING;
 INSERT INTO accounts (id, name, email, phone) VALUES
   ('acct_dev', 'Alex Morgan', 'alex@example.com', '506-555-0148')
 ON CONFLICT (id) DO NOTHING;
+
+-- Demo login: alex@example.com / nibble-demo (bcrypt, cost 10). Requires migration 0008_auth.
+UPDATE accounts
+SET password_hash = '$2a$10$s/a.4YqBOSHCTfPEO9kPLO9D09CluZOd7aWaZfhQOayecZyD6c1i2'
+WHERE id = 'acct_dev' AND password_hash = '';
 
 INSERT INTO saved_addresses (id, account_id, label, latitude, longitude, address, city, region, postal_code, current) VALUES
   ('addr_home', 'acct_dev', 'UNBF', 45.9458, -66.6414, '3 Bailey Dr', 'Fredericton', 'NB', 'E3B 5A3', true)
