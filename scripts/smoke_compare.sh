@@ -17,4 +17,6 @@ resp="$(curl -fsS -X POST "$BASE/v1/compare" -H 'Content-Type: application/json'
 }')"
 
 echo "$resp" | grep -q recommendation || { echo "missing recommendation"; exit 1; }
+echo "$resp" | grep -q 'paths_ranked[^0-9]*[3-9]' || { echo "expected at least three providers"; exit 1; }
+echo "$resp" | grep -q all_in || { echo "missing all-in total"; exit 1; }
 echo "smoke_compare: OK"

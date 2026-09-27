@@ -20,6 +20,9 @@ $body = @{
 Write-Host "POST $base/v1/compare"
 $c = Invoke-RestMethod -Uri "$base/v1/compare" -Method Post -Body $body -ContentType "application/json"
 if (-not $c.recommendation) { throw "no recommendation in response" }
+if ($c.paths_ranked -lt 3) { throw "expected at least three comparable providers, got $($c.paths_ranked)" }
+if ($c.runners_up.Count -lt 2) { throw "expected two runner-up providers" }
+if (-not $c.recommendation.all_in) { throw "recommendation missing all-in total" }
 Write-Host "compare_session_id: $($c.compare_session_id)"
 Write-Host "winner all_in: $($c.recommendation.all_in.amount_cents) $($c.recommendation.all_in.currency)"
 Write-Host "smoke_compare: OK"
