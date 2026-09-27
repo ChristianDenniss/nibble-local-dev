@@ -38,8 +38,8 @@ services:
 
   api-engine:
     build:
-      context: ../nibble-api-engine
-      dockerfile: Dockerfile
+      context: ..
+      dockerfile: nibble-api-engine/Dockerfile
       args:
         GITHUB_TOKEN: ${GITHUB_TOKEN}
     environment:
@@ -71,8 +71,8 @@ services:
 
   data-acquisition:
     build:
-      context: ../nibble-data-acquisition
-      dockerfile: Dockerfile
+      context: ..
+      dockerfile: nibble-data-acquisition/Dockerfile
       args:
         GITHUB_TOKEN: ${GITHUB_TOKEN}
     environment:

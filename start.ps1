@@ -15,7 +15,10 @@ $env:BUILDKIT_PROGRESS = "plain"
 
 function Test-StackImages {
     foreach ($name in @('nibble-api-engine', 'nibble-data-acquisition', 'nibble-web-platform')) {
+        $previousPreference = $ErrorActionPreference
+        $ErrorActionPreference = 'Continue'
         docker image inspect $name *> $null
+        $ErrorActionPreference = $previousPreference
         if ($LASTEXITCODE -ne 0) { return $false }
     }
     return $true
