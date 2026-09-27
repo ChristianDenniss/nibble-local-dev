@@ -88,6 +88,7 @@ services:
       dockerfile: Dockerfile
     environment:
       API_ENGINE_URL: http://api-engine:8080
+      VITE_MOCK: "0"
     ports:
       # Host 5174 avoids conflict with other Vite dev servers on 5173.
       - "5174:5173"
