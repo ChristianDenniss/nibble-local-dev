@@ -20,7 +20,7 @@ Ownership:
 - **go-data-store:** immutable import history and normalized current provider,
   store and item read tables; atomic import and repeatable-read catalog queries.
 - **api-engine:** private ingestion and public `GET /v1/catalog` orchestration.
-- **web-platform:** restaurant → menu → item comparisons, provider logos,
+- **web-platform:** restaurant → menu → cart → whole-cart provider comparisons, provider logos,
   addresses, honest missing-price/fee states. Login/intro appearance preserved.
 
 The browse read model is separate from existing quote/checkout tables. It does
@@ -59,3 +59,8 @@ For Go tests without a host Go installation, mount the sibling workspace into
 Collection timestamps, crawl ages, failures and schedules remain private.
 Public prices are not represented as live quotes. Uber menu coverage remains
 limited; missing provider prices are explicit, not copied from the other app.
+
+Whole-cart arithmetic runs in `go-data-model/catalog/cart.go`, exposed by
+`POST /v1/catalog/cart-comparison`. The web persists only item identities and
+quantities; the API reads all prices. Missing items keep the provider’s full
+subtotal unknown, and unknown basket fees are never summed or guessed.

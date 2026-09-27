@@ -11,7 +11,7 @@ for repo in ('nibble-api-engine', 'nibble-go-data-store'):
     vendor = root / repo / 'vendor'
     target = vendor / 'github.com/ChristianDenniss/go-data-model/catalog'
     target.mkdir(parents=True, exist_ok=True)
-    for name in ('catalog.go', 'branch_matches.json'):
+    for name in ('catalog.go', 'cart.go', 'branch_matches.json'):
         shutil.copyfile(root / 'nibble-go-data-model/catalog' / name, target / name)
     modules = vendor / 'modules.txt'
     text = modules.read_text()
