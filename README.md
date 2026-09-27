@@ -145,7 +145,7 @@ Or set `ACQUISITION_ADAPTER=curated` on `data-acquisition` (after sibling module
 1. **Web UI:** [http://localhost:5174/compare](http://localhost:5174/compare) — run compare for `pl_demo` / `dish_burger`.
 2. **Smoke script:** `.\scripts\smoke_compare.ps1` or `bash scripts/smoke_compare.sh` (hits `POST /v1/compare`).
 3. **Manual SQL seed** (optional): `psql postgres://nibble:nibble@localhost:5433/nibble?sslmode=disable -f scripts/seed_compare_demo.sql`
-4. **Storefront browse** (optional, for `VITE_MOCK=0`): `psql ... -f scripts/seed_storefront_demo.sql` then open [http://localhost:5174](http://localhost:5174) — loads `GET /storefront` for account `acct_dev`.
+4. **Storefront browse** (optional, for `VITE_MOCK=0`): generate the API demo seed from the same catalog used by the web mock, then open [http://localhost:5174](http://localhost:5174): `python scripts/seed/seed_web_catalog.py | psql postgres://nibble:nibble@localhost:5433/nibble?sslmode=disable`. This loads the 111 restaurants, menus, offers, and demo addresses used by the mock. The older `scripts/seed_storefront_demo.sql` remains available for the small three-restaurant fixture.
    Add `-f scripts/seed_merchandising_demo.sql` for Home banners, deals, and sponsored rails (`GET /v1/home`).
 5. **Source catalog E2E** (Phase 1): `.\scripts\smoke_catalog_e2e.ps1` (lists `ch_store` stores, then menu). Web: [http://localhost:5174/source-menu](http://localhost:5174/source-menu).
 

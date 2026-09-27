@@ -37,6 +37,21 @@ ON CONFLICT (id) DO UPDATE SET
   postal_code = EXCLUDED.postal_code, phone = EXCLUDED.phone, app_url = EXCLUDED.app_url,
   updated_at = now();
 
+UPDATE restaurants SET image_url = CASE id
+  WHEN 'rest_unbf_tims' THEN 'https://ubdining.com/sites/default/files/inline-images/timsSU-inline1.jpg'
+  WHEN 'rest_cellar' THEN 'https://img1.wsimg.com/isteam/ip/ea10a889-6b1f-4b85-9815-80e916c7fd1e/D6DF81F6-03C1-4DB8-B6FA-CF79F6895868.jpeg'
+  WHEN 'rest_unbf_catertrax' THEN 'https://crm.catertrax.com/publisher_images/Compass/OOEChartwells/chartwellshero.jpg'
+  WHEN 'rest_rocket_burger' THEN 'https://www.rocketburger.ca/wp-content/uploads/2019/10/RocketBurger-FB-Image.jpg'
+  WHEN 'rest_stlouis' THEN 'https://www.stlouiswings.com/wp-content/uploads/2026/07/Wingsanity-2026-Home-Page-Banner_Banner-scaled-1.png'
+  WHEN 'rest_moco' THEN 'https://img1.wsimg.com/isteam/ip/9efcde0b-c703-44a7-bf36-319ee3727d8c/DSC_1920.jpg'
+  WHEN 'rest_540_north' THEN 'http://static1.squarespace.com/static/5f64ae7a63c0d6377c81f157/t/5f997447bc33106bd9dc7b2d/1603892299909/540-Social-Sharing-Image.jpg?format=1500w'
+  WHEN 'rest_diamond_house' THEN 'https://d2gqo3h0psesgi.cloudfront.net/auto/diamond-house-chinese-restaurant-6qbltdp3-banner.jpg'
+  WHEN 'rest_pizza_delight_oromocto' THEN 'https://www.pizzadelight.com/resources/assets/images/restaurant/default-banner-restaurant.jpg'
+  WHEN 'rest_spicy_roots' THEN 'https://d2gqo3h0psesgi.cloudfront.net/auto/spicy-roots-bistro-87cb2jzf-banner.jpg'
+  ELSE image_url END,
+  updated_at = now()
+WHERE id LIKE 'rest_%';
+
 INSERT INTO restaurant_categories (restaurant_id, category_id) VALUES
   ('rest_unbf_tims', 'cat_food'), ('rest_cellar', 'cat_food'), ('rest_unbf_catertrax', 'cat_food'),
   ('rest_rocket_burger', 'cat_food'), ('rest_stlouis', 'cat_food'), ('rest_moco', 'cat_food'),
