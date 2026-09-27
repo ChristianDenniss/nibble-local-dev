@@ -34,4 +34,10 @@ if [[ "${build}" -eq 1 ]]; then
 fi
 
 echo "Attaching to compose (use ./start.sh --build to rebuild images first)..."
+if command -v gh >/dev/null 2>&1; then
+  token="$(gh auth token 2>/dev/null || true)"
+  if [[ -n "${token}" ]]; then
+    export GITHUB_TOKEN="${token}"
+  fi
+fi
 exec docker compose --progress=plain up --remove-orphans --timestamps

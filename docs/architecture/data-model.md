@@ -42,7 +42,7 @@ This problem is old. Metasearch already paid for the scars. We are **not** claim
 |--------|----------------|
 | Google Shopping / Schema.org | **Product** (what it is) vs **Offer** (who sells it, price, availability). |
 | Uber Eats INCA | **Product** vs **item/offering** (seller + fulfillment + price). Combos/variants as first-class catalog, not extra columns on a sandwich. |
-| MealMe, DoorDash, Uber Eats menu APIs | Menu is **categories → items → modifier groups → nested options**. Delivery vs pickup menus. The **fee stack** (delivery, service, small-order, tax, order minimum, ETA) is what “all-in” means. |
+| DoorDash, Uber Eats, Skip menu APIs | Menu is **categories → items → modifier groups → nested options**. Delivery vs pickup menus. The **fee stack** (delivery, service, small-order, tax, order minimum, ETA) is what “all-in” means. |
 
 **What we added (Nibble, not a copy):**
 
@@ -53,7 +53,7 @@ This problem is old. Metasearch already paid for the scars. We are **not** claim
 - **Meta-search user spine** (dropoffs, alerts, outbound hops) instead of marketplace orders/payments unless we become merchant of record.
 - **Modifier matching deferred.** Persist source modifiers; do not canonicalize “add bacon” across apps in v1.
 
-If a future reader has to choose: credit Kayak/Skyscanner for the spine, Google/Uber/MealMe for catalog and fees, and Nibble for the plane split and the matching/honesty rules. We stood on that work so we could ship a model that answers all-in compare without spending the timeline rediscovering metasearch.
+If a future reader has to choose: credit Kayak/Skyscanner for the spine, Google/Uber/DoorDash for catalog and fees, and Nibble for the plane split and the matching/honesty rules. We stood on that work so we could ship a model that answers all-in compare without spending the timeline rediscovering metasearch.
 
 ---
 
@@ -149,7 +149,7 @@ Deals attach to a **path**, not generically to “the restaurant”:
 
 - Aggregator: free delivery on Skip, % off in app.
 - Merchant: “pickup 10%”, “Tuesday large pizza”, loyalty in brand app.
-- In-store: may only exist as `in_person` menu observation or promo scrape — same `promotions` tables with `fulfillment_mode` + `channel_id` + optional `place_id`.
+- In-store: may only exist as `in_person` menu observation or a posted promo — same `promotions` tables with `fulfillment_mode` + `channel_id` + optional `place_id`.
 
 We still do not model **secret** targeted coupons without a user-connected session.
 
@@ -199,9 +199,9 @@ Not implemented yet. Shapes below are the **target contract** for HTTP compare +
   "fulfillment_context": {
     "mode": "delivery",
     "dropoff": {
-      "latitude": 49.2827,
-      "longitude": -123.1207,
-      "label": "Home"
+      "latitude": 45.9458,
+      "longitude": -66.6414,
+      "label": "UNBF"
     }
   },
   "basket": {
@@ -239,11 +239,11 @@ For pickup / drive-thru / in-store compare, use `fulfillment_context.mode`: `"in
   "quote_preference_used": "indicative",
   "place": {
     "id": "01JPLACE8K2MCD123MAIN",
-    "name": "McDonald's — 123 Main St",
+    "name": "McDonald's — Queen St",
     "brand_id": "01JBRAND_MCD"
   },
   "query_snapshot": {
-    "dropoff_geohash": "c2b2n",
+    "dropoff_geohash": "f80t7",
     "filters": { "willing_to_use_aggregator": true, "drive_thru_ok": true },
     "memberships": ["dashpass"]
   },
@@ -300,7 +300,7 @@ For pickup / drive-thru / in-store compare, use `fulfillment_context.mode`: `"in
     "action": {
       "kind": "maps",
       "label": "Get directions",
-      "maps_url": "https://maps.example/?q=49.28,-123.12",
+      "maps_url": "https://maps.example/?q=45.9458,-66.6414",
       "deep_link": null,
       "phone_e164": null
     },
@@ -520,6 +520,7 @@ flowchart TB
   P6[6 Public promotions]
   P7[7 User / meta-search]
   P8[8 Read models<br/>current prices, compare]
+  P9[9 Merchandising<br/>sponsored placements]
 
   P0 --> P1
   P1 --> P3
@@ -532,7 +533,11 @@ flowchart TB
   P4 --> P8
   P6 --> P8
   P7 --> P8
+  P6 -.-> P9
+  P2 -.-> P9
 ```
+
+Plane 9 reads the canonical graph and promotions to decide *what to show in ad slots*. Nothing in planes 0–8 reads plane 9 (see D28).
 
 ---
 
@@ -542,7 +547,7 @@ A pricing company that normalizes away the payload cannot debug a mismatch.
 
 | Table | Grain | Why |
 |-------|--------|-----|
-| `ingest_runs` | One collector pass | Provider, job type (store list / menu / quote / promo), started/finished, counts, parser version. |
+| `ingest_runs` | One collector pass | Provider, job type (`curated_seed` / `coverage_probe` / store list / menu / quote / promo), started/finished, counts, parser version. |
 | `source_snapshots` | One payload | Raw JSON, checksum, `observed_at`, `provider_id`, `external_store_id`, content type. Never update in place. |
 
 ---
@@ -675,14 +680,30 @@ Modifier matching is **out of v1**. Compare default (no extras) or let the UI pi
 
 ### Plane 4 — Serviceability
 
-Coverage is geographic and temporal, not a boolean on the brand.
+Coverage is geographic and temporal, not a boolean on the brand. There are **three layers**:
+
+| Layer | Question | Table |
+|-------|----------|--------|
+| Nibble market | Do we operate here? | `markets` |
+| Channel in market | Does Skip/DD even exist in this metro? | `channel_market_coverage` |
+| Store service area | Does this kitchen deliver to this dropoff? | `service_areas` |
 
 | Table | Grain |
 |-------|--------|
+| `markets` | One Nibble launch metro (slug, country, currency, timezone, geohash prefixes). |
+| `market_probe_dropoffs` | Representative addresses for a market (UNBF, downtown, Regent). Used when a live coverage job exists. |
+| `channel_market_coverage` | `(channel, market)` + status `expected` / `observed` / `absent` / `unknown`. |
 | `service_areas` | `(source_store, fulfillment_mode)` + radius or polygon. Merchant delivery zones ≠ Skip zones. Dropoff outside = not covered. |
 | `hours_regular` | Weekly intervals per source_store (and maybe per fulfillment). |
 | `hours_exceptions` | Holidays / temporary. |
 | `source_store_status` | Latest: paused, closed, `open_now` cache, `observed_at`. |
+
+**How coverage is collected.** Acquisition adapters write this plane. v1 sources:
+
+- **Curated seed** — city lists we maintain (`expected`). First market: Fredericton (UNBF hackathon).
+- Official partner / merchant APIs later, when a kitchen or platform signed us. Not another consumer food app.
+
+Do not treat missing `service_areas` as “not covered”; unknown store zones currently **allow** (see serviceability). Channel-in-market `absent` is what hides a whole aggregator in a city.
 
 ---
 
@@ -737,7 +758,7 @@ erDiagram
 
 `quote_kind`: `indicative` (cached / last seen) vs `live` (fresh). Do not mix series in charts.
 
-`quote_fee_line.kind` values we care about (MealMe-shaped):
+`quote_fee_line.kind` values we care about (aggregator fee-stack shaped):
 
 `item_subtotal` · `modifier` · `delivery` · `service` · `small_order` · `tax` · `promo` · `membership` · `order_minimum` · `eta_minutes` (eta is not money; store on the quote header).
 
@@ -796,6 +817,76 @@ Not source of truth. Rebuild from observations.
 
 Compare API reads these, then optionally kicks a **live** quote refresh (Skyscanner create/poll).
 
+**Home feed** (`GET /v1/home`) is also a read model: it composes the storefront catalog, active public promotions (plane 6), and active sponsored placements (plane 9) into banners + rails. Organic rails (Most popular, Recommended) are computed from catalog + user history only.
+
+---
+
+### Plane 9 — Merchandising (Nibble's own inventory)
+
+This is how Nibble makes money without selling the answer. Plane 6 is *providers'* public deals, which change what you pay. Plane 9 is ad inventory that **advertisers pay Nibble for**: banners and labelled rail slots on Home, Search, and Category pages. It never changes a price, a compare ranking, or a recommendation.
+
+```mermaid
+erDiagram
+  ADVERTISER ||--o{ SPONSORED_CAMPAIGN : runs
+  SPONSORED_CAMPAIGN ||--o{ SPONSORED_PLACEMENT : has
+  SPONSORED_PLACEMENT ||--o{ SPONSORED_EVENT : logs
+  ADVERTISER {
+    text id PK
+    text name
+    text brand_id FK
+    text contact_email
+    text status
+  }
+  SPONSORED_CAMPAIGN {
+    text id PK
+    text advertiser_id FK
+    text market_id FK
+    text status
+    timestamptz starts_at
+    timestamptz ends_at
+    text pricing_model
+    bigint bid_cents
+    bigint daily_budget_cents
+    bigint total_budget_cents
+    text currency
+  }
+  SPONSORED_PLACEMENT {
+    text id PK
+    text campaign_id FK
+    text slot
+    int priority
+    text legacy_restaurant_id FK
+    text place_id FK
+    text brand_id FK
+    text promotion_id FK
+    text category_id FK
+    text cuisine_id FK
+    text headline
+    text body
+    text image_url
+    text cta_label
+  }
+  SPONSORED_EVENT {
+    text id PK
+    text placement_id FK
+    text kind
+    text user_id FK
+    text surface
+    timestamptz occurred_at
+  }
+```
+
+| Table | Grain | Notes |
+|-------|--------|-------|
+| `advertisers` | One paying party (a brand, a single restaurant, or a channel) | `brand_id` optional; status `active` / `suspended`. |
+| `sponsored_campaigns` | One flight with a window, budget, and bid | `pricing_model` = `cpm` / `cpc` / `flat`; `status` = `draft` / `active` / `paused` / `ended`; `market_id` null = all markets. |
+| `sponsored_placements` | One creative in one **slot** | `slot` = `home_banner` / `home_rail` / `search_top` / `category_top`. Target is one of place / brand / legacy restaurant; optional `promotion_id` when the creative features a public deal; optional `category_id` / `cuisine_id` for contextual slots. |
+| `sponsored_events` | One impression or click | Append-only billing source. `surface` = page that rendered it. Never updated. |
+
+**Serving:** a placement is live when its campaign is `active`, `now` is inside the window, and the market matches (or is null). Order by `bid_cents` desc, then `priority` desc, capped per slot (banners 3, rail 6). Budget pacing is an open decision (D29); events are recorded from day one so billing can be reconstructed.
+
+**Do not** read plane 9 from compare, recommendations, or organic rails. **Do not** render a placement without a visible "Sponsored" label.
+
 ---
 
 ### How a compare actually runs
@@ -815,7 +906,7 @@ sequenceDiagram
   M->>DB: listing_current + quote_current + promotions per path
   M-->>API: ranked all-in per eligible purchase path (indicative)
   opt live refresh
-    API->>M: enqueue quote scrape
+    API->>M: enqueue live quote refresh
   end
 ```
 
@@ -831,11 +922,12 @@ Rough count if we build the planes above: **~40–50 tables**, plus joins. That 
 | 1 Source | `channels`, `source_stores`, `place_purchase_options`, `source_menus`, categories/items/modifiers |
 | 2 Canonical | `brands`, `places`, `dishes`, `cuisines`, `categories`, `dietary_tags`, join tables, `*_aliases` |
 | 3 Resolution | `store_matches`, `item_matches`, `match_evidence` |
-| 4 Serviceability | `service_areas`, `hours_regular`, `hours_exceptions`, `source_store_status` |
+| 4 Serviceability | `markets`, `market_probe_dropoffs`, `channel_market_coverage`, `service_areas`, `hours_regular`, `hours_exceptions`, `source_store_status` |
 | 5 Pricing | `item_price_observations`, `quote_observations`, `quote_fee_lines` |
 | 6 Promos | `promotions`, `promotion_constraints`, `promotion_targets`, `membership_products` |
 | 7 User | `users`, `user_settings` (+ `compare_prefs` JSONB), `user_dropoffs`, `user_memberships`, `compare_sessions` (+ `result_snapshot` JSONB), `outbound_clicks`; alerts deferred |
-| 8 Read | `listing_current`, `quote_current`, `place_path_matrix` |
+| 8 Read | `listing_current`, `quote_current`, `place_path_matrix`; home feed is computed per request |
+| 9 Merchandising | `advertisers`, `sponsored_campaigns`, `sponsored_placements`, `sponsored_events` |
 
 ---
 
@@ -849,9 +941,32 @@ Rough count if we build the planes above: **~40–50 tables**, plus joins. That 
 | FOOD | Canonical `dishes` + source `source_items` + `item_matches`. Not one table. |
 | Offers | Split: coverage is source rows; price is `item_price_observations`; checkout is `quote_observations`. |
 | Deals | `promotions` + constraints + targets (public only). |
+| Ads / sponsored / featured | Plane 9 `sponsored_placements` (labelled, paid, never affects compare). |
 | USERS / SETTINGS | Plane 7 |
 | USER_PURCHASES | `outbound_clicks` / `attributed_purchases`, not marketplace orders. |
 | Cart / Order GDM today | Comparison basket + hop, unless we become MoR. |
+
+---
+
+## Decisions locked for Phase 1 catalog slice
+
+These are fixed for ingest + `GET /v1/.../source-stores` + menu browse until we revisit compare quotes.
+
+| # | Decision |
+|---|----------|
+| D21 | Fulfillment uses `fulfillment_mode` + `delivery_executor` (see migration 0004); no combined `delivery_3p` strings in new code. |
+| D27 | Fredericton launch data comes from **curated ingest** (`ACQUISITION_ADAPTER=curated`: markets + compare catalog), not live partner APIs. |
+| D15 (v1) | Quote lookup key includes `source_store`, `channel`, fulfillment path, `dropoff_geohash` (5-char for demo), `membership_tier`, `basket_subtotal_cents` on the observation row. |
+| Aggregators | `channel.kind = aggregator` for Skip, DoorDash, Uber Eats; compare filters use `willing_to_use_aggregator`. |
+| D19 | Compare remains **one place** + basket of `dish_id` lines; catalog browse is per **source store** on a channel. |
+| D22 | In-person prices live on a **separate `source_store`** on the `in_person` / store channel, priced with `item_price_observations` like any other path. No price rows on `places`. |
+| D23 | Filters are **opt-in for aggregators, open for everything else**: aggregator paths are dropped unless `willing_to_use_aggregator = true`; other paths show when observed. Empty request filters fall back to the signed-in user's `compare_prefs`. |
+| D24 | **Strict item parity**: each basket line resolves `dish_id` → `source_item` per store via `item_matches`. A path with any unmatched or unpriced line goes to `unavailable_paths` (`basket_unpriced`); no "closest item" substitution in v1. |
+| D25 | Recommendation = **lowest all-in** (item subtotal + quote fee lines). Remaining ranked paths are `runners_up`; no friction weighting in v1. |
+| D28 | **Sponsored neutrality**: plane 9 placements never feed compare ranking, recommendations, or the organic Most popular / Recommended rails. Every placement is rendered with a visible "Sponsored" label. The home feed service computes organic rails from catalog + user history before merchandising is merged in. |
+| D26 | Confidence per path: `high` when a quote observation matched the D15 key; `low` when the quote is missing or a delivery path has no dropoff. Phone / published-menu paths have no live quote, so they rank on item prices at `low` confidence. |
+
+Still open and not blocking Phase 1/2 catalog work: D16 (indicative vs live labelling), D17 (match thresholds), D18 (modifiers), D20 (raw payload retention).
 
 ---
 
@@ -863,19 +978,14 @@ Rough count if we build the planes above: **~40–50 tables**, plus joins. That 
 | D3 | History | Append-only snapshots + observations. Current prices are read models. |
 | D8 | Currency | Required on every money observation. No table default. |
 | D10 | Fulfillment | Meta-pricing + outbound hop. No payment spine until MoR. |
-| D21 | **Fulfillment enum** | Fixed set above; extend via migration + ingest mapping, not free-text. |
-| D22 | **In-person prices** | Separate `source_store` per `in_person` channel or price obs on `place` + mode — decide before ingest. |
-| D23 | **Filter defaults** | Opt-in paths (show all observed) vs opt-out (hide aggregators until user enables). Product choice. |
-| D24 | **Cross-path item parity** | Same `dish` required to compare paths, or allow “closest item per path” with warning in UI. |
-| D25 | **Recommendation tie-break** | Pure lowest all-in vs within-$X friction preference (drive-thru vs wait). v1: price wins, explain runners-up. |
-| D26 | **Phone path pricing** | Menu scrape / published PDF / “call for quote” — confidence tier on recommendation when quote is not live. |
 | D12 | Promo stacking | v1: one item-scoped + one fee-scoped public promo. |
-| D15 | **Quote query grain** | `(source_store, channel, fulfillment_mode, dropoff_geohash or in_person, membership_tier, basket_subtotal_bucket)`. Refine geohash precision later. |
 | D16 | **Indicative vs live** | Store both; UI labels them; charts use one series. |
 | D17 | **Match threshold** | Auto-link stores above confidence X; items above Y; else unmatched. Human review queue. |
 | D18 | **Modifiers** | Persist source modifiers. Do not canonicalize in v1. Compare base item. |
-| D19 | **Basket grain** | Compare is per **place** + dishes. Mixing two kitchens is a different search. |
 | D20 | **Raw payload retention** | Hot: 14 days full JSON. Cold: checksum + S3 later. |
+| D29 | **Sponsored budget pacing** | v1 serves every live placement; enforce `daily_budget_cents` / `total_budget_cents` from `sponsored_events` once billing starts. |
+
+D15, D19, D21–D27 moved to [Decisions locked for Phase 1 catalog slice](#decisions-locked-for-phase-1-catalog-slice).
 
 ---
 
@@ -891,7 +1001,10 @@ Align packages to planes, not to today’s folders.
 | `resolution` | Matches, evidence, alias application |
 | `observation` | Item prices, quotes, fee lines |
 | `promotion` | Public promos |
-| `serviceability` | Hours, areas, status |
+| `merchandising` | Advertisers, sponsored campaigns, placements, impression/click events |
+| `home` | Home feed read model: banners + rails composed from storefront, promotions, merchandising |
+| `market` | Launch geos, probe dropoffs, channel-in-market coverage |
+| `serviceability` | Hours, store areas, status |
 | `ingest` | Runs (or keep this in acquisition + store only) |
 | `user` | Settings, dropoffs, memberships, alerts |
 | `compare` | Filter paths + all-in math + **recommendation** (winner + rationale; session snapshot) |
@@ -934,6 +1047,7 @@ Align packages to planes, not to today’s folders.
 | Skip `listing_current` / `quote_current` tables | Open — use latest observation queries until slow. |
 | Skip canonical matching in v1 | Open — limits cross-app “same dish” compare. |
 | Single-aggregator ingest first | Open — product choice, not schema. |
+| **`legacy_restaurant_id` on `promotion_targets` and `sponsored_placements`** | **Agreed** — storefront still serves legacy `restaurants`, which have no link to `places`. Drop both columns when storefront reads places. |
 
 **`compare_prefs` shape (v1):**
 
@@ -970,18 +1084,20 @@ Validate in the compare service (GDM), not with Postgres check constraints on JS
 - [x] Purchase paths, user filters, path-agnostic recommendations
 - [x] Illustrative compare API request/response ([Compare API shape](#compare-api-shape-illustrative))
 - [x] Visual entity diagram ([data-model-diagram.md](./data-model-diagram.md))
-- [ ] Close D15–D26 (quote grain, paths, recommendations, phone confidence, filters)
-- [ ] Repository signatures per context
+- [x] Close D15–D26 (quote grain, paths, recommendations, phone confidence, filters) — D16–D18, D20 stay open, non-blocking
+- [x] Repository signatures per context ([repository-signatures.md](./repository-signatures.md))
 - [x] Promote compare JSON to `nibble-platform-contracts` OpenAPI (`openapi/compare/v1/openapi.yaml`)
 
 ### Phase 1 — Channels + source catalog + ingest
 
 - `channels` (aggregator, merchant_app, merchant_web, phone, in_person).
+- `markets` + probe dropoffs + `channel_market_coverage` (Fredericton / UNBF first).
 - Replace legacy restaurant/menu/offer with `source_stores`, menus per `fulfillment_mode`, items, modifiers.
-- `ingest_runs` + `source_snapshots` on every parse.
+- `ingest_runs` + `source_snapshots` on every parse (`curated_seed`, later store list / menu / quote).
+- Curated Fredericton coverage seed; live ingest only from sources Nibble is allowed to call.
 - `item_price_observations` per `source_item`.
 - `place_purchase_options` stub (manual or inferred paths per place).
-- gRPC ingest maps into source plane; HTTP read: single-channel menu browse.
+- gRPC ingest maps into source plane + markets; HTTP read: single-channel menu browse.
 
 ### Phase 2 — Quotes + fee stack + single-path compare
 
@@ -1019,6 +1135,13 @@ Validate in the compare service (GDM), not with Postgres check constraints on JS
 - gentypes from GDM; compare UI (winner, rationale, runners-up, unavailable paths).
 - Legacy `accounts` / `carts` / `orders` retired or bridged only if MoR changes.
 
+### Phase 8 — Home feed + merchandising
+
+- [x] Plane 9 tables (migration 0006), `merchandising` + `home` GDM contexts.
+- [x] `promotions.fulfillment_mode` / `description`; promotion target + constraint upserts.
+- [x] `GET /v1/home` (banners + sponsored / deals / popular / recommended rails) and `POST /v1/sponsored/events`.
+- [ ] Budget pacing (D29), advertiser admin, search/category sponsored slots in the web app.
+
 ---
 
 ## Hexagonal placement
@@ -1041,6 +1164,8 @@ flowchart LR
 ## As-implemented snapshot (legacy)
 
 Today: `restaurants`, `menu_items`, `offers`, `price_observations`, storefront junctions, `accounts` / `carts` / `orders`. Ingest is `RecordRestaurant` / `MenuItem` / `Offer` / `PriceObservation`. Frozen until Phase 1.
+
+**Item images (migration `0007_item_images`):** `menu_items.image_url` and `source_items.image_url` hold an absolute http(s) URL, or `''` for none. Images are external links for now (provider CDN or hand-picked), validated by `media/entity.NormalizeImageURL`. They get in three ways: the seed SQL; ingest (`image_url` on v1 `MenuItem` and v2 `SourceItem`), where an empty value never overwrites a stored image; and `PUT /v1/menu-items/{itemId}/image` with `{"imageURL": "..."}` (empty clears it). Moving to a Nibble-owned bucket (S3 or similar) later only changes which URLs get stored, not the schema or the web app.
 
 ---
 

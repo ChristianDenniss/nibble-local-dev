@@ -26,9 +26,10 @@ services:
       - -c
       - log_min_messages=info
     ports:
-      - "5432:5432"
+      # Host 5433 avoids conflict with a local PostgreSQL install on 5432 (common on Windows).
+      - "5433:5432"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U nibble -d nibble"]
+      test: ["CMD-SHELL", "pg_isready -U nibble"]
       interval: 2s
       timeout: 5s
       retries: 20
@@ -43,9 +44,19 @@ services:
       DATABASE_URL: postgres://nibble:nibble@postgres:5432/nibble?sslmode=disable
       HTTP_ADDR: :8080
       GRPC_ADDR: :9090
+      # Sign-in. Providers stay disabled until their credentials are set in .env.
+      OAUTH_CALLBACK_BASE_URL: ${OAUTH_CALLBACK_BASE_URL:-http://localhost:5174/api}
+      AUTH_COOKIE_SECURE: ${AUTH_COOKIE_SECURE:-false}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+      APPLE_CLIENT_ID: ${APPLE_CLIENT_ID:-}
+      APPLE_TEAM_ID: ${APPLE_TEAM_ID:-}
+      APPLE_KEY_ID: ${APPLE_KEY_ID:-}
+      APPLE_PRIVATE_KEY: ${APPLE_PRIVATE_KEY:-}
     ports:
-      - "8080:8080"
-      - "127.0.0.1:9090:9090"
+      # Host 8081/9091 avoid conflict with other local stacks on 8080/9090.
+      - "8081:8080"
+      - "127.0.0.1:9091:9090"
     depends_on:
       postgres:
         condition: service_healthy
@@ -58,8 +69,8 @@ services:
 
   data-acquisition:
     build:
-      context: ..
-      dockerfile: nibble-data-acquisition/Dockerfile.catalog
+      context: ../nibble-data-acquisition
+      dockerfile: Dockerfile.catalog
     environment:
       API_ENGINE_GRPC_ADDR: api-engine:9090
     restart: unless-stopped
@@ -75,8 +86,10 @@ services:
       dockerfile: Dockerfile
     environment:
       API_ENGINE_URL: http://api-engine:8080
+      VITE_MOCK: "0"
     ports:
-      - "5173:5173"
+      # Host 5174 avoids conflict with other Vite dev servers on 5173.
+      - "5174:5173"
     depends_on:
       api-engine:
         condition: service_healthy

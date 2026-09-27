@@ -15,7 +15,10 @@ $env:BUILDKIT_PROGRESS = "plain"
 
 function Test-StackImages {
     foreach ($name in @('nibble-api-engine', 'nibble-data-acquisition', 'nibble-web-platform')) {
+        $previousPreference = $ErrorActionPreference
+        $ErrorActionPreference = 'Continue'
         docker image inspect $name *> $null
+        $ErrorActionPreference = $previousPreference
         if ($LASTEXITCODE -ne 0) { return $false }
     }
     return $true
@@ -34,6 +37,10 @@ if ($needBuild) {
 }
 
 Write-Host "Attaching to compose (use .\start.ps1 -Build to rebuild images first)..."
+if (Get-Command gh -ErrorAction SilentlyContinue) {
+    $ghToken = gh auth token 2>$null
+    if ($ghToken) { $env:GITHUB_TOKEN = $ghToken }
+}
 docker compose --progress=plain up --remove-orphans --timestamps
 if ($LASTEXITCODE -ne 0) {
     exit $LASTEXITCODE

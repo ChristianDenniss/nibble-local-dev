@@ -100,7 +100,8 @@ gh auth login
 A first `make start` builds the images if they are missing.
 
 ```bash
-make build       # pull images and build containers (plain progress in the terminal)
+make pull        # optional: refresh base images (postgres, node, …)
+make build       # build service images (uses BuildKit; does not re-pull every time)
 make start       # start the stack in the foreground with live logs
 make status      # check containers
 ```
@@ -114,27 +115,67 @@ docker compose --progress=plain build
 .\start.ps1 -Build
 ```
 
-`make start` / `.\start.ps1` stay attached so you see postgres init (first run creates `nibble`), api-engine migrations, and every service log. Ctrl+C stops the stack.
+`make start` / `.\start.ps1` stay attached so you see postgres init (first run creates `nibble`), api-engine migrations, and every service log. Ctrl+C stops the stack. To tear down containers for **this** repo, use `make stop` or `make down` (same thing).
 
-Open [http://localhost:5173](http://localhost:5173). Open `/browse` to explore the imported restaurant catalog.
+Default **host** ports are chosen to avoid common conflicts (local Postgres on 5432, other stacks on 8080/9090/5173):
+
+| Service | Host port |
+| ------- | --------- |
+| Postgres | 5433 |
+| api-engine HTTP / gRPC | 8081 / 9091 |
+| web-platform | 5174 |
+
+Change the left side of each `ports` entry in `docker-compose.yml` if a port is still taken. An old **`doordash-*`** compose stack may still be running — stop it with `docker stop doordash-api-engine-1 doordash-web-platform-1` or remove those containers if you no longer need them.
+
+Open [http://localhost:5174](http://localhost:5174). The page should show **200 success** after it calls `api-engine` `/health`.
 
 ### Compare vertical slice (demo)
 
-The default worker now collects Uber Eats and DoorDash. The older compare demo can still be seeded manually using `scripts/seed_compare_demo.sql`; it is separate from the provider browse read model.
+The default worker collects public provider catalogs. The curated market seed can be applied manually using the SQL below.
 
-1. **Web UI:** [http://localhost:5173/compare](http://localhost:5173/compare) — run compare for `pl_demo` / `dish_burger`.
+**Persistent market seed (Fredericton / UNBF):** after migrations, either run the `curated` adapter or apply SQL:
+
+```powershell
+psql postgres://nibble:nibble@localhost:5433/nibble?sslmode=disable -f scripts/seed/global.sql
+psql postgres://nibble:nibble@localhost:5433/nibble?sslmode=disable -f scripts/seed/fredericton.sql
+```
+
+Or set `ACQUISITION_ADAPTER=curated` on `data-acquisition` (after sibling modules include market ingest).
+
+1. **Web UI:** [http://localhost:5174/compare](http://localhost:5174/compare) — run compare for `pl_demo` / `dish_burger`.
 2. **Smoke script:** `.\scripts\smoke_compare.ps1` or `bash scripts/smoke_compare.sh` (hits `POST /v1/compare`).
-3. **Manual SQL seed** (optional): `psql postgres://nibble:nibble@localhost:5432/nibble?sslmode=disable -f scripts/seed_compare_demo.sql`
+3. **Manual SQL seed** (optional): `psql postgres://nibble:nibble@localhost:5433/nibble?sslmode=disable -f scripts/seed_compare_demo.sql`
+4. **Storefront browse** (optional, for `VITE_MOCK=0`): `psql ... -f scripts/seed_storefront_demo.sql` then open [http://localhost:5174](http://localhost:5174) — loads `GET /storefront` for account `acct_dev`.
+   Add `-f scripts/seed_merchandising_demo.sql` for Home banners, deals, and sponsored rails (`GET /v1/home`).
+5. **Source catalog E2E** (Phase 1): `.\scripts\smoke_catalog_e2e.ps1` (lists `ch_store` stores, then menu). Web: [http://localhost:5174/source-menu](http://localhost:5174/source-menu).
 
 Module pins after releases: [`docs/architecture/module-pins.md`](docs/architecture/module-pins.md).
+
+### Sign-in
+
+`api-engine` owns sessions: `POST /v1/auth/signup`, `/v1/auth/login`, `/v1/auth/logout`, `GET /v1/auth/me`, plus Google / Apple OAuth under `/v1/auth/oauth/{provider}/start|callback`. The browser gets an HttpOnly `nibble_session` cookie through the Vite `/api` proxy, so the web app and API share one origin.
+
+- **Email + password** works with no config. After `seed_storefront_demo.sql`, log in as `alex@example.com` / `nibble-demo`. With the web mock adapter (the default), the same demo login works without the API.
+- **Google:** create an OAuth client (type *Web application*) in Google Cloud Console, add `http://localhost:5174/api/v1/auth/oauth/google/callback` as an authorized redirect URI, and put `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` in `.env` (see [`.env.example`](.env.example)). Use `VITE_MOCK=0` on the web app so it talks to the real API.
+- **Apple:** needs an Apple Developer account (Services ID, Sign in with Apple key) and an **HTTPS** redirect URI, which Apple requires. Point `OAUTH_CALLBACK_BASE_URL` at a public HTTPS origin (for example a tunnel to port 5174), set `AUTH_COOKIE_SECURE=true`, and fill the `APPLE_*` variables.
+
+SSO buttons stay disabled until their provider is configured (`GET /v1/auth/providers`).
+
+**Not in the MVP (needed later):**
+
+- Rate limiting / lockout on `POST /v1/auth/login` and `/signup`.
+- Password reset (forgot-password email + reset token).
+- Email verification for password sign-ups (SSO accounts are already provider-verified).
+- A real guest storefront: signed-out visitors currently fall back to `DEFAULT_ACCOUNT_ID` (`acct_dev`) for addresses, cart, and orders.
 
 Other useful targets:
 
 | Target           | Description                                      |
 | ---------------- | ------------------------------------------------ |
+| `make pull`      | Refresh upstream base images (postgres, node, …) |
 | `make start-detach` | Start in the background (detached compose)     |
 | `make restart`   | Stop the stack, then start it again in the foreground |
-| `make down`      | Stop and remove containers                       |
+| `make down` / `make stop` | Stop and remove **this** stack (`nibble-local-dev` compose only) |
 | `make logs`      | Follow combined logs with timestamps             |
 
 ## Versioning
@@ -157,7 +198,7 @@ export GONOSUMDB=github.com/ChristianDenniss/*
 
 In Docker, leave `VITE_API_URL` unset. Compose uses `API_ENGINE_URL` so the Vite
 dev server proxies `/health` to `api-engine`. `nibble-web-platform` waits until
-`api-engine` reports healthy on `:8080`.
+`api-engine` reports healthy on container `:8080` (host **8081** when calling from your machine).
 
 **Local Compose** builds sibling source through Go workspaces. Standalone CI/release
 builds require publishing the coordinated library changes and bumping module pins.
@@ -177,10 +218,10 @@ Do not commit `replace` directives in service repos; bump deps with
 
 | Service        | Port(s)     |
 | -------------- | ----------- |
-| web-platform   | 5173        |
-| api-engine HTTP | 8080       |
-| api-engine gRPC | 9090       |
-| postgres       | 5432        |
+| web-platform (host) | 5174 → 5173 in container |
+| api-engine HTTP (host) | 8081 → 8080 in container |
+| api-engine gRPC (host) | 9091 → 9090 in container |
+| postgres (host) | 5433 → 5432 in container |
 
 ## Repositories
 
