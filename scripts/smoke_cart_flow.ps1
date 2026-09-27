@@ -5,6 +5,16 @@ $catalog = Invoke-RestMethod -Uri "$base/v1/storefront?account_id=acct_dev" -Met
 if (-not $catalog.cart.id) { throw "expected an account cart" }
 
 $lines = @($catalog.cart.lines)
+if ($lines.Count -eq 0) {
+  $offer = @($catalog.offers)[0]
+  if (-not $offer) { throw "expected at least one catalog offer to seed the cart" }
+  $lines = @(@{
+    restaurantId = $offer.restaurantId
+    menuItemId = $offer.menuItemId
+    providerId = $offer.providerId
+    quantity = 1
+  })
+}
 $body = @{ id = $catalog.cart.id; lines = $lines } | ConvertTo-Json -Depth 8
 $saved = Invoke-RestMethod -Uri "$base/v1/cart?account_id=acct_dev" -Method Put -ContentType "application/json" -Body $body
 if ($saved.id -ne $catalog.cart.id) { throw "cart was not persisted" }

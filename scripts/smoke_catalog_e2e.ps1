@@ -4,7 +4,7 @@ $base = if ($env:API_BASE) { $env:API_BASE } else { "http://localhost:8081" }
 
 Write-Host "GET $base/health"
 $h = Invoke-RestMethod -Uri "$base/health" -Method Get
-if ($h.status -ne "ok") { throw "health failed" }
+if (($h -is [string] -and $h -ne "ok") -or ($h -isnot [string] -and $h.status -ne "ok")) { throw "health failed" }
 
 Write-Host "GET $base/v1/channels/ch_store/source-stores"
 $stores = Invoke-RestMethod -Uri "$base/v1/channels/ch_store/source-stores" -Method Get
